@@ -165,33 +165,35 @@ export default function App() {
     return e;
   }, [form, showErrors]);
 
-  const isValid = () => {
+  const missingFieldsMessage = () => {
     const amountNum = parseAmount(form.amount || '');
-    return Boolean(
-      form.beneficiaryAccountNumber.trim() &&
-        form.beneficiaryName.trim() &&
-        form.beneficiaryBank.trim() &&
-        form.beneficiaryCountry.trim() &&
-        form.beneficiaryCity.trim() &&
-        form.currency &&
-        form.amount.trim() &&
-        !Number.isNaN(amountNum) &&
-        amountNum > 0 &&
-        form.orderAccountNumber.trim()
-    );
+    const missing: string[] = [];
+    if (!form.orderAccountNumber.trim()) missing.push('Compte N° (donneur d\'ordre)');
+    if (!form.beneficiaryName.trim()) missing.push('Bénéficiaire');
+    if (!form.beneficiaryCity.trim()) missing.push('Ville');
+    if (!form.beneficiaryCountry.trim()) missing.push('Pays');
+    if (!form.beneficiaryAccountNumber.trim()) missing.push('Compte bénéficiaire');
+    if (!form.beneficiaryBank.trim()) missing.push('Banque');
+    if (!form.currency) missing.push('Devise');
+    if (!form.amount.trim() || Number.isNaN(amountNum) || amountNum <= 0) missing.push('Montant');
+    return missing;
   };
 
   const handlePrint = () => {
-    if (!isValid()) {
+    const missing = missingFieldsMessage();
+    if (missing.length > 0) {
       setShowErrors(true);
+      alert(`Merci de compléter les champs obligatoires avant d'imprimer :\n\n• ${missing.join('\n• ')}`);
       return;
     }
     window.print();
   };
 
   const handleExportPdf = async () => {
-    if (!isValid()) {
+    const missing = missingFieldsMessage();
+    if (missing.length > 0) {
       setShowErrors(true);
+      alert(`Merci de compléter les champs obligatoires avant d'exporter :\n\n• ${missing.join('\n• ')}`);
       return;
     }
     if (!sheetRef.current) return;
@@ -207,6 +209,12 @@ export default function App() {
       pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
       const filename = `virement_${(form.beneficiaryName || 'fournisseur').replace(/\s+/g, '_')}_${form.date}.pdf`;
       pdf.save(filename);
+    } catch (err) {
+      console.error('Export PDF a échoué :', err);
+      alert(
+        "L'export PDF a échoué. Réessaie, ou utilise \"Imprimer A4\" puis choisis " +
+          '"Enregistrer au format PDF" dans la fenêtre d\'impression du navigateur.'
+      );
     } finally {
       setExporting(false);
     }

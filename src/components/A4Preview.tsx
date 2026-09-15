@@ -98,17 +98,25 @@ export default function A4Preview({ form }: Props) {
 
   return (
     <div className="a4-sheet">
-      {/* En-tête */}
-      <div className="absolute left-[15mm] top-[12mm] text-[13pt] font-semibold tracking-wide text-[#111417]">
-        Ordre de virement à l'étranger
+      {/* En-tête — reprend les éléments imprimés du formulaire d'origine :
+          logotype CIH BANK à gauche, titre encadré "TRANSFERT A L'ETRANGER" à
+          droite. Aucun cachet ni signature bancaire n'est reproduit ici. */}
+      <div className="absolute left-[15mm] top-[13mm] flex items-baseline gap-[1.5mm]">
+        <span className="text-[15pt] font-bold tracking-tight" style={{ color: '#0b3d91' }}>
+          CIH
+        </span>
+        <span className="text-[15pt] font-bold tracking-tight text-[#111417]">BANK</span>
       </div>
-      <div className="absolute right-[15mm] top-[13mm] text-[7.5pt] uppercase tracking-widest text-[#8a2b2b] border border-[#8a2b2b]/60 px-[2mm] py-[0.8mm]">
-        Copie / Préparation interne
+      <div
+        className="absolute right-[15mm] top-[12mm] border-2 border-[#111417] px-[4mm] py-[2mm] text-[11pt] font-bold text-center"
+        style={{ letterSpacing: '0.03em' }}
+      >
+        TRANSFERT A L'ETRANGER
       </div>
-      <div className="absolute left-[15mm] top-[18mm] right-[15mm] border-t border-[#111417]/30" />
+      <div className="absolute left-[15mm] top-[22mm] right-[15mm] border-t border-[#111417]/30" />
 
       {/* Donneur d'ordre */}
-      <FieldLine top={24} label="Donneur d'ordre" />
+      <FieldLine top={27} label="Donneur d'Ordre" />
       <FieldLine top={40} label="Nom / raison sociale" />
       <DataText field="orderName" value={form.orderName} mono={false} />
       <FieldLine top={47} label="Compte N°" required />
@@ -200,7 +208,9 @@ export default function A4Preview({ form }: Props) {
         <div className="mt-[10mm] border-b border-[#111417]/30" />
       </div>
 
-      {/* Cadre réservé à l'agence — laissé vierge intentionnellement */}
+      {/* Cadre réservé à l'agence — mêmes libellés imprimés que l'original.
+          Zone volontairement laissée vierge : ni cachet ni signature d'agence
+          ne sont reproduits, cette partie reste à remplir par la banque. */}
       <div
         className="absolute left-[15mm] right-[15mm] border border-[#111417]/40"
         style={{ top: '236mm', bottom: '15mm' }}
@@ -208,8 +218,10 @@ export default function A4Preview({ form }: Props) {
         <div className="bg-[#14181f] text-white text-[8.5pt] px-[3mm]" style={{ height: '6mm', display: 'flex', alignItems: 'center' }}>
           Cadre réservé à l'agence
         </div>
-        <div className="px-[3mm] py-[3mm] text-[8.5pt] text-[#8a939f] italic">
-          Zone non renseignée par cette application — réservée au traitement bancaire.
+        <div className="relative" style={{ height: 'calc(100% - 6mm)' }}>
+          <div className="absolute left-[3mm] top-[4mm] text-[9pt] text-[#111417]">Blocage des fonds</div>
+          <div className="absolute left-[3mm] top-[11mm] text-[9pt] text-[#111417]">Contrôle</div>
+          <div className="absolute right-[3mm] top-[4mm] text-[9pt] text-[#111417]">Bon à opérer</div>
         </div>
       </div>
     </div>
