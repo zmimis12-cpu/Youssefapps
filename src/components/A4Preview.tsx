@@ -2,6 +2,7 @@ import type { TransferForm } from '../types';
 import { fields } from '../config/fieldsConfig';
 import { formatAmountDigits, parseAmount } from '../utils/formatAmount';
 import { amountToWords } from '../utils/amountToWords';
+import { writtenLabelFor } from '../data/currencies';
 
 interface Props {
   form: TransferForm;
@@ -55,16 +56,18 @@ function DataText({
   field,
   value,
   mono = true,
+  bold = false,
 }: {
   field: keyof typeof fields;
   value: string;
   mono?: boolean;
+  bold?: boolean;
 }) {
   const pos = fields[field];
   if (!pos) return null;
   return (
     <div
-      className={`absolute leading-tight ${mono ? 'font-[var(--font-mono-doc)]' : ''}`}
+      className={`absolute leading-tight ${mono ? 'font-[var(--font-mono-doc)]' : ''} ${bold ? 'font-semibold' : ''}`}
       style={{
         top: `${pos.y}mm`,
         left: `${pos.x}mm`,
@@ -129,7 +132,7 @@ export default function A4Preview({ form }: Props) {
       {/* Donneur d'ordre */}
       <FieldLine top={27} label="Donneur d'Ordre" />
       <FieldLine top={40} label="Nom / raison sociale" />
-      <DataText field="orderName" value={form.orderName} mono={false} />
+      <DataText field="orderName" value={form.orderName} mono={false} bold />
       <FieldLine top={47} label="Compte N°" required />
       <DataText field="orderAccountNumber" value={form.orderAccountNumber} />
       <Underline top={51} />
@@ -153,12 +156,16 @@ export default function A4Preview({ form }: Props) {
         (cocher la mention)
       </div>
 
-      {/* La somme de */}
+      {/* La somme de — la devise est toujours réécrite en toutes lettres à la
+          fin du montant en chiffres ET du montant en lettres. */}
       <Bar top={76} label="La somme de" />
       <FieldLine top={83.5} left={15} width={38} label="Nature de la devise" required />
-      <DataText field="currency" value={form.currency} mono={false} />
-      <FieldLine top={83.5} left={105} width={40} label="Montant en chiffres" required />
-      <DataText field="amountDigits" value={amountDigits} />
+      <DataText field="currency" value={writtenLabelFor(form.currency)} mono={false} />
+      <FieldLine top={83.5} left={100} width={38} label="Montant en chiffres" required />
+      <DataText
+        field="amountDigits"
+        value={amountDigits ? `${amountDigits} ${writtenLabelFor(form.currency)}` : ''}
+      />
       <FieldLine top={90} label="Montant en lettres" required />
       <DataText field="amountWords" value={amountWords} mono={false} />
       <Underline top={103} />
@@ -166,59 +173,48 @@ export default function A4Preview({ form }: Props) {
       {/* Au profit de */}
       <Bar top={106} label="Au profit de" />
       <FieldLine top={114.5} label="Bénéficiaire" required />
-      <DataText field="beneficiaryName" value={form.beneficiaryName} mono={false} />
-      <FieldLine top={120.5} label="Adresse" />
-      <DataText field="beneficiaryAddress" value={form.beneficiaryAddress} mono={false} />
-      <FieldLine top={126.5} left={15} width={42} label="Ville" />
-      <DataText field="beneficiaryCity" value={form.beneficiaryCity} mono={false} />
-      <FieldLine top={126.5} left={140} width={9} label="Pays" required />
-      <div
-        className="absolute text-[9pt] font-[var(--font-mono-doc)]"
-        style={{ top: '126.5mm', left: '150mm', width: '48mm', color: '#0b1f5c' }}
-      >
-        {form.beneficiaryCountry}
-      </div>
-      <FieldLine top={132.5} left={15} width={44} label="Domiciliation — Compte N°" required />
+      <DataText field="beneficiaryName" value={form.beneficiaryName} mono={false} bold />
+      <FieldLine top={120.5} left={15} width={18} label="Pays" required />
+      <DataText field="beneficiaryCountry" value={form.beneficiaryCountry} mono={false} />
+      <FieldLine top={126.5} left={15} width={44} label="Domiciliation — Compte N°" required />
       <DataText field="beneficiaryAccountNumber" value={form.beneficiaryAccountNumber} />
-      <FieldLine top={138.5} label="Banque" required />
+      <FieldLine top={132.5} label="Banque" required />
       <DataText field="beneficiaryBank" value={form.beneficiaryBank} mono={false} />
-      <Underline top={143} />
+      <Underline top={137} />
 
       {/* En règlement de */}
-      <Bar top={150} label="En règlement de" />
-      <FieldLine top={159} label="Nature de l'opération" />
-      <DataText field="operationNature" value={form.operationNature} mono={false} />
-      <FieldLine top={165} label="N° et date facture(s)" />
+      <Bar top={142} label="En règlement de" />
+      <FieldLine top={150} label="N° et date facture(s)" />
       <DataText field="invoiceRef" value={form.invoiceRef} mono={false} />
-      <FieldLine top={171} width={128} label="Frais et commissions à la charge du bénéficiaire" />
-      <Checkbox x={148} y={170.5} checked={form.feesOnBeneficiary === 'Oui'} />
-      <div className="absolute text-[9pt]" style={{ top: '170.5mm', left: '154mm' }}>Oui</div>
-      <Checkbox x={168} y={170.5} checked={form.feesOnBeneficiary === 'Non'} />
-      <div className="absolute text-[9pt]" style={{ top: '170.5mm', left: '174mm' }}>Non</div>
-      <Underline top={176} />
+      <FieldLine top={156} width={128} label="Frais et commissions à la charge du bénéficiaire" />
+      <Checkbox x={148} y={155.5} checked={form.feesOnBeneficiary === 'Oui'} />
+      <div className="absolute text-[9pt]" style={{ top: '155.5mm', left: '154mm' }}>Oui</div>
+      <Checkbox x={168} y={155.5} checked={form.feesOnBeneficiary === 'Non'} />
+      <div className="absolute text-[9pt]" style={{ top: '155.5mm', left: '174mm' }}>Non</div>
+      <Underline top={161} />
 
       {/* Sous couvert de */}
-      <Bar top={181} label="Sous couvert de" />
-      <FieldLine top={187} label="Titre / importation" />
+      <Bar top={166} label="Sous couvert de" />
+      <FieldLine top={172} label="Titre / importation" />
       <DataText field="importTitle" value={form.importTitle} mono={false} />
-      <FieldLine top={193} left={15} width={33} label="Références" />
+      <FieldLine top={178} left={15} width={33} label="Références" />
       <DataText field="references" value={form.references} mono={false} />
-      <FieldLine top={193} left={100} width={35} label="domicilié(s) chez" />
+      <FieldLine top={178} left={100} width={35} label="domicilié(s) chez" />
       <DataText field="domicileChez" value={form.domicileChez} mono={false} />
-      <FieldLine top={199} left={15} width={58} label="Autorisation Office des Changes N°" />
+      <FieldLine top={184} left={15} width={58} label="Autorisation Office des Changes N°" />
       <DataText field="changeOfficeAuth" value={form.changeOfficeAuth} mono={false} />
-      <FieldLine top={199} left={146} width={12} label="Date" />
+      <FieldLine top={184} left={146} width={12} label="Date" />
       <DataText field="authDate" value={form.authDate} mono={false} />
-      <Underline top={205} />
+      <Underline top={190} />
 
       {/* Date / lieu — sans signature reconstituée */}
       <div
         className="absolute text-[10.5pt]"
-        style={{ top: '212mm', left: '15mm' }}
+        style={{ top: '197mm', left: '15mm' }}
       >
         {form.city}, le {form.date ? new Date(form.date).toLocaleDateString('fr-FR') : ''}
       </div>
-      <div className="absolute text-[9pt] text-[#647089]" style={{ top: '212mm', right: '15mm', width: '55mm', textAlign: 'right' }}>
+      <div className="absolute text-[9pt] text-[#647089]" style={{ top: '197mm', right: '15mm', width: '55mm', textAlign: 'right' }}>
         Signature donneur d'ordre
         <div className="mt-[10mm] border-b border-[#111417]/30" />
       </div>
@@ -230,7 +226,7 @@ export default function A4Preview({ form }: Props) {
       {form.showAgencyBox && (
         <div
           className="absolute left-[15mm] right-[15mm] border border-[#111417]/40"
-          style={{ top: '233mm', bottom: '15mm' }}
+          style={{ top: '210mm', bottom: '15mm' }}
         >
           <div className="bg-[#14181f] text-white text-[8.5pt] px-[3mm]" style={{ height: '6mm', display: 'flex', alignItems: 'center' }}>
             Cadre réservé à l'agence
@@ -242,6 +238,11 @@ export default function A4Preview({ form }: Props) {
             <div className="absolute left-[3mm] top-[11mm] text-[9pt] text-[#111417]">
               {form.agencyBoxControle}
             </div>
+            {form.agencyDestination.trim() && (
+              <div className="absolute left-[3mm] top-[18mm] text-[9pt] text-[#111417]">
+                Destinataire : {form.agencyDestination}
+              </div>
+            )}
             <div className="absolute right-[3mm] top-[4mm] text-[9pt] text-[#111417]">
               {form.agencyBoxBonAOperer}
             </div>

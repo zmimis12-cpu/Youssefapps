@@ -99,24 +99,12 @@ export default function TransferForm({
           required
         />
         <TextInput
-          label="Adresse"
-          value={form.beneficiaryAddress}
-          onChange={(v) => onChange('beneficiaryAddress', v)}
+          label="Pays"
+          value={form.beneficiaryCountry}
+          onChange={(v) => onChange('beneficiaryCountry', v)}
+          error={errors.beneficiaryCountry}
+          required
         />
-        <Row>
-          <TextInput
-            label="Ville"
-            value={form.beneficiaryCity}
-            onChange={(v) => onChange('beneficiaryCity', v)}
-          />
-          <TextInput
-            label="Pays"
-            value={form.beneficiaryCountry}
-            onChange={(v) => onChange('beneficiaryCountry', v)}
-            error={errors.beneficiaryCountry}
-            required
-          />
-        </Row>
         <TextInput
           label="Compte N°"
           value={form.beneficiaryAccountNumber}
@@ -134,11 +122,6 @@ export default function TransferForm({
       </Section>
 
       <Section title="Enregistrement">
-        <TextInput
-          label="Nature de l'opération"
-          value={form.operationNature}
-          onChange={(v) => onChange('operationNature', v)}
-        />
         <TextInput
           label="N° et date facture(s)"
           value={form.invoiceRef}
@@ -251,6 +234,12 @@ export default function TransferForm({
               value={form.agencyBoxControle}
               onChange={(v) => onChange('agencyBoxControle', v)}
               placeholder="Contrôle"
+            />
+            <TextInput
+              label="Agence destinataire"
+              value={form.agencyDestination}
+              onChange={(v) => onChange('agencyDestination', v)}
+              placeholder="Casa Diouri"
             />
           </>
         )}

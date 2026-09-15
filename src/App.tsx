@@ -14,6 +14,13 @@ import {
   saveOwnAccounts,
   loadCurrentForm,
   saveCurrentForm,
+  fetchSuppliersFromSupabase,
+  upsertSupplierToSupabase,
+  deleteSupplierFromSupabase,
+  fetchOwnAccountsFromSupabase,
+  upsertOwnAccountToSupabase,
+  deleteOwnAccountFromSupabase,
+  isSupabaseConfigured,
 } from './utils/storage';
 import { demoSuppliers } from './data/suppliers';
 import { parseAmount } from './utils/formatAmount';
@@ -41,16 +48,35 @@ export default function App() {
   const sheetRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
 
-  // Initial load
+  // Initial load — essaie Supabase en premier (si configuré), retombe sur la
+  // cache locale sinon (hors ligne, projet Supabase pas encore prêt, etc.)
   useEffect(() => {
-    const stored = loadSuppliers();
-    if (stored.length === 0) {
-      setSuppliers(demoSuppliers);
-      saveSuppliers(demoSuppliers);
-    } else {
-      setSuppliers(stored);
-    }
+    const local = loadSuppliers();
+    setSuppliers(local.length > 0 ? local : demoSuppliers);
+    if (local.length === 0) saveSuppliers(demoSuppliers);
     setOwnAccounts(loadOwnAccounts());
+
+    if (isSupabaseConfigured) {
+      fetchSuppliersFromSupabase().then((remote) => {
+        if (remote !== null) {
+          if (remote.length > 0) {
+            setSuppliers(remote);
+            saveSuppliers(remote);
+          } else if (local.length === 0) {
+            // Base distante vide et rien en local : on y sème les 3 fournisseurs
+            // de démonstration pour un premier essai.
+            demoSuppliers.forEach((s) => upsertSupplierToSupabase(s));
+          }
+        }
+      });
+      fetchOwnAccountsFromSupabase().then((remote) => {
+        if (remote !== null) {
+          setOwnAccounts(remote);
+          saveOwnAccounts(remote);
+        }
+      });
+    }
+
     const storedForm = loadCurrentForm();
     if (storedForm) setForm(storedForm);
   }, []);
@@ -86,8 +112,6 @@ export default function App() {
       ...f,
       supplierId: s.id,
       beneficiaryName: s.name,
-      beneficiaryAddress: s.address,
-      beneficiaryCity: s.city,
       beneficiaryCountry: s.country,
       beneficiaryAccountNumber: s.accountNumber,
       beneficiaryBank: s.bankName,
@@ -103,6 +127,7 @@ export default function App() {
       return next;
     });
     setEditingSupplier(null);
+    upsertSupplierToSupabase(s);
   };
 
   const deleteSupplier = (id: string) => {
@@ -114,6 +139,7 @@ export default function App() {
     if (form.supplierId === id) {
       setField('supplierId', null);
     }
+    deleteSupplierFromSupabase(id);
   };
 
   const selectOwnAccount = (a: OwnAccount) => {
@@ -136,6 +162,7 @@ export default function App() {
     setEditingOwnAccount(null);
     // Applique immédiatement le compte enregistré au formulaire courant.
     selectOwnAccount(a);
+    upsertOwnAccountToSupabase(a);
   };
 
   const deleteOwnAccount = (id: string) => {
@@ -147,6 +174,7 @@ export default function App() {
     if (form.ownAccountId === id) {
       setField('ownAccountId', null);
     }
+    deleteOwnAccountFromSupabase(id);
   };
 
   const errors = useMemo(() => {
@@ -246,7 +274,10 @@ export default function App() {
           </button>
           <div>
             <h1 className="text-sm font-semibold text-ink-900">Virements fournisseurs</h1>
-            <p className="text-[11px] text-ink-500">Préparation interne — CIH Bank</p>
+            <p className="text-[11px] text-ink-500">
+              Préparation interne — CIH Bank
+              {isSupabaseConfigured && <span className="text-teal-600"> · synchronisé</span>}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">

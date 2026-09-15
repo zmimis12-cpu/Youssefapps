@@ -72,6 +72,13 @@ et sur l'impression — aucun autre fichier à toucher pour un simple réglage d
 Les éléments fixes du formulaire (barres de titre, cases à cocher, libellés, lignes)
 sont dans `src/components/A4Preview.tsx`.
 
+## Base de données (Supabase)
+
+Voir [`SUPABASE.md`](./SUPABASE.md) — une seule étape manuelle (créer 2 tables
+via le SQL Editor de Supabase) suffit pour synchroniser fournisseurs et
+comptes "donneur d'ordre" entre appareils. Sans cette étape, tout continue de
+fonctionner en localStorage uniquement.
+
 ## Architecture
 
 ```

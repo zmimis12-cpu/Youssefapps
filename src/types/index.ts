@@ -32,13 +32,10 @@ export interface TransferForm {
   // Bénéficiaire
   supplierId: string | null;
   beneficiaryName: string;
-  beneficiaryAddress: string;
-  beneficiaryCity: string;
   beneficiaryCountry: string;
   beneficiaryAccountNumber: string;
   beneficiaryBank: string;
   // Enregistrement
-  operationNature: string;
   invoiceRef: string;
   feesOnBeneficiary: 'Oui' | 'Non' | '';
   // Sous couvert de
@@ -56,6 +53,7 @@ export interface TransferForm {
   agencyBoxBlocage: string;
   agencyBoxControle: string;
   agencyBoxBonAOperer: string;
+  agencyDestination: string; // agence destinataire, ex. "Casa Diouri"
   updatedAt: number;
 }
 
@@ -65,18 +63,15 @@ export const emptyForm = (): TransferForm => ({
   orderAccountNumber: '',
   orderName: '',
   operationType: 'SWIFT',
-  currency: 'MAD',
+  currency: 'USD',
   amount: '',
   supplierId: null,
   beneficiaryName: '',
-  beneficiaryAddress: '',
-  beneficiaryCity: '',
   beneficiaryCountry: '',
   beneficiaryAccountNumber: '',
   beneficiaryBank: '',
-  operationNature: '',
   invoiceRef: '',
-  feesOnBeneficiary: '',
+  feesOnBeneficiary: 'Non',
   importTitle: '',
   references: '',
   domicileChez: '',
@@ -89,5 +84,6 @@ export const emptyForm = (): TransferForm => ({
   agencyBoxBlocage: 'Blocage des fonds',
   agencyBoxControle: 'Contrôle',
   agencyBoxBonAOperer: 'Bon à opérer',
+  agencyDestination: 'Casa Diouri',
   updatedAt: Date.now(),
 });
