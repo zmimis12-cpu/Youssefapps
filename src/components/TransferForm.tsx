@@ -108,8 +108,6 @@ export default function TransferForm({
             label="Ville"
             value={form.beneficiaryCity}
             onChange={(v) => onChange('beneficiaryCity', v)}
-            error={errors.beneficiaryCity}
-            required
           />
           <TextInput
             label="Pays"

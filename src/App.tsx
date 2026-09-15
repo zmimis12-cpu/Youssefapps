@@ -23,7 +23,6 @@ type RequiredKey =
   | 'beneficiaryName'
   | 'beneficiaryBank'
   | 'beneficiaryCountry'
-  | 'beneficiaryCity'
   | 'currency'
   | 'amount'
   | 'orderAccountNumber';
@@ -158,7 +157,6 @@ export default function App() {
     if (!form.beneficiaryName.trim()) e.beneficiaryName = true;
     if (!form.beneficiaryBank.trim()) e.beneficiaryBank = true;
     if (!form.beneficiaryCountry.trim()) e.beneficiaryCountry = true;
-    if (!form.beneficiaryCity.trim()) e.beneficiaryCity = true;
     if (!form.currency) e.currency = true;
     if (!form.amount.trim() || Number.isNaN(amountNum) || amountNum <= 0) e.amount = true;
     if (!form.orderAccountNumber.trim()) e.orderAccountNumber = true;
@@ -170,7 +168,6 @@ export default function App() {
     const missing: string[] = [];
     if (!form.orderAccountNumber.trim()) missing.push('Compte N° (donneur d\'ordre)');
     if (!form.beneficiaryName.trim()) missing.push('Bénéficiaire');
-    if (!form.beneficiaryCity.trim()) missing.push('Ville');
     if (!form.beneficiaryCountry.trim()) missing.push('Pays');
     if (!form.beneficiaryAccountNumber.trim()) missing.push('Compte bénéficiaire');
     if (!form.beneficiaryBank.trim()) missing.push('Banque');

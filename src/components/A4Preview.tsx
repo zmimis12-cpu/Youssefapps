@@ -169,7 +169,7 @@ export default function A4Preview({ form }: Props) {
       <DataText field="beneficiaryName" value={form.beneficiaryName} mono={false} />
       <FieldLine top={120.5} label="Adresse" />
       <DataText field="beneficiaryAddress" value={form.beneficiaryAddress} mono={false} />
-      <FieldLine top={126.5} left={15} width={42} label="Ville" required />
+      <FieldLine top={126.5} left={15} width={42} label="Ville" />
       <DataText field="beneficiaryCity" value={form.beneficiaryCity} mono={false} />
       <FieldLine top={126.5} left={140} width={9} label="Pays" required />
       <div
