@@ -53,7 +53,9 @@ export interface TransferForm {
   // Apparence du document
   bankHeaderText: string; // logo / nom de banque en en-tête, modifiable ou vidable
   showAgencyBox: boolean;
-  agencyBoxLabel: string;
+  agencyBoxBlocage: string;
+  agencyBoxControle: string;
+  agencyBoxBonAOperer: string;
   updatedAt: number;
 }
 
@@ -84,6 +86,8 @@ export const emptyForm = (): TransferForm => ({
   date: new Date().toISOString().slice(0, 10),
   bankHeaderText: 'CIH BANK',
   showAgencyBox: true,
-  agencyBoxLabel: "Cadre réservé à l'agence",
+  agencyBoxBlocage: 'Blocage des fonds',
+  agencyBoxControle: 'Contrôle',
+  agencyBoxBonAOperer: 'Bon à opérer',
   updatedAt: Date.now(),
 });

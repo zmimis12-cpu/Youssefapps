@@ -233,12 +233,28 @@ export default function TransferForm({
           Afficher le cadre réservé à l'agence
         </label>
         {form.showAgencyBox && (
-          <TextInput
-            label="Libellé du cadre agence"
-            value={form.agencyBoxLabel}
-            onChange={(v) => onChange('agencyBoxLabel', v)}
-            placeholder="Cadre réservé à l'agence"
-          />
+          <>
+            <Row>
+              <TextInput
+                label="Ligne 1 (gauche)"
+                value={form.agencyBoxBlocage}
+                onChange={(v) => onChange('agencyBoxBlocage', v)}
+                placeholder="Blocage des fonds"
+              />
+              <TextInput
+                label="Ligne 3 (droite)"
+                value={form.agencyBoxBonAOperer}
+                onChange={(v) => onChange('agencyBoxBonAOperer', v)}
+                placeholder="Bon à opérer"
+              />
+            </Row>
+            <TextInput
+              label="Ligne 2 (gauche, sous la ligne 1)"
+              value={form.agencyBoxControle}
+              onChange={(v) => onChange('agencyBoxControle', v)}
+              placeholder="Contrôle"
+            />
+          </>
         )}
       </Section>
     </div>

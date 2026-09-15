@@ -233,12 +233,18 @@ export default function A4Preview({ form }: Props) {
           style={{ top: '233mm', bottom: '15mm' }}
         >
           <div className="bg-[#14181f] text-white text-[8.5pt] px-[3mm]" style={{ height: '6mm', display: 'flex', alignItems: 'center' }}>
-            {form.agencyBoxLabel || "Cadre réservé à l'agence"}
+            Cadre réservé à l'agence
           </div>
           <div className="relative" style={{ height: 'calc(100% - 6mm)' }}>
-            <div className="absolute left-[3mm] top-[4mm] text-[9pt] text-[#111417]">Blocage des fonds</div>
-            <div className="absolute left-[3mm] top-[11mm] text-[9pt] text-[#111417]">Contrôle</div>
-            <div className="absolute right-[3mm] top-[4mm] text-[9pt] text-[#111417]">Bon à opérer</div>
+            <div className="absolute left-[3mm] top-[4mm] text-[9pt] text-[#111417]">
+              {form.agencyBoxBlocage}
+            </div>
+            <div className="absolute left-[3mm] top-[11mm] text-[9pt] text-[#111417]">
+              {form.agencyBoxControle}
+            </div>
+            <div className="absolute right-[3mm] top-[4mm] text-[9pt] text-[#111417]">
+              {form.agencyBoxBonAOperer}
+            </div>
           </div>
         </div>
       )}
