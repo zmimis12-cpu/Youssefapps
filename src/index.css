@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-doc: "IBM Plex Serif", Georgia, serif;
+  --font-mono-doc: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-ink-950: #14181f;
+  --color-ink-900: #1b212b;
+  --color-ink-800: #262e3b;
+  --color-ink-700: #333d4d;
+  --color-ink-500: #647089;
+  --color-ink-300: #b7c0d1;
+  --color-ink-100: #eef1f6;
+  --color-ink-50: #f7f8fb;
+
+  --color-teal-700: #0f5e56;
+  --color-teal-600: #14766c;
+  --color-teal-500: #1a8f83;
+  --color-teal-100: #e2f2f0;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-ink-50);
+  font-family: var(--font-sans);
+  color: var(--color-ink-900);
+}
+
+/* --- A4 preview sizing --- */
+.a4-sheet {
+  width: 210mm;
+  height: 297mm;
+  background: white;
+  box-shadow: 0 1px 3px rgba(20, 24, 31, 0.08), 0 12px 32px rgba(20, 24, 31, 0.12);
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-doc);
+  color: #111417;
+}
+
+.a4-scale-wrap {
+  transform-origin: top center;
+}
+
+/* --- Print rules --- */
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  html, body {
+    background: white !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #print-root, #print-root * {
+    visibility: visible;
+  }
+
+  #print-root {
+    position: fixed;
+    inset: 0;
+    box-shadow: none !important;
+  }
+
+  .a4-sheet {
+    box-shadow: none !important;
+    width: 210mm;
+    height: 297mm;
+  }
+
+  .a4-scale-wrap {
+    transform: none !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
