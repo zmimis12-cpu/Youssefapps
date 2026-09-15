@@ -1,5 +1,5 @@
 export type OperationType = 'SWIFT' | 'TELEX' | 'CHEQUE';
-export type Currency = 'MAD' | 'USD' | 'EUR' | 'GBP' | 'CNY';
+export type Currency = string; // ISO 4217 code, e.g. 'MAD', 'USD', 'EUR'…
 
 export interface Supplier {
   id: string;
@@ -13,9 +13,16 @@ export interface Supplier {
   notes?: string;
 }
 
+export interface OwnAccount {
+  id: string;
+  name: string; // Nom / raison sociale du donneur d'ordre
+  accountNumber: string; // Compte N°
+}
+
 export interface TransferForm {
   id: string;
   // Donneur d'ordre
+  ownAccountId: string | null;
   orderAccountNumber: string;
   orderName: string;
   // Opération
@@ -46,6 +53,7 @@ export interface TransferForm {
 
 export const emptyForm = (): TransferForm => ({
   id: crypto.randomUUID(),
+  ownAccountId: null,
   orderAccountNumber: '',
   orderName: '',
   operationType: 'SWIFT',

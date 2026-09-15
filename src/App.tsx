@@ -4,9 +4,17 @@ import TransferFormFields from './components/TransferForm';
 import A4Preview from './components/A4Preview';
 import PrintButton from './components/PrintButton';
 import SupplierForm from './components/SupplierForm';
-import type { Supplier, TransferForm } from './types';
+import OwnAccountForm from './components/OwnAccountForm';
+import type { OwnAccount, Supplier, TransferForm } from './types';
 import { emptyForm } from './types';
-import { loadSuppliers, saveSuppliers, loadCurrentForm, saveCurrentForm } from './utils/storage';
+import {
+  loadSuppliers,
+  saveSuppliers,
+  loadOwnAccounts,
+  saveOwnAccounts,
+  loadCurrentForm,
+  saveCurrentForm,
+} from './utils/storage';
 import { demoSuppliers } from './data/suppliers';
 import { parseAmount } from './utils/formatAmount';
 
@@ -22,9 +30,11 @@ type RequiredKey =
 
 export default function App() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [ownAccounts, setOwnAccounts] = useState<OwnAccount[]>([]);
   const [query, setQuery] = useState('');
   const [form, setForm] = useState<TransferForm>(emptyForm());
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null | 'new'>(null);
+  const [editingOwnAccount, setEditingOwnAccount] = useState<OwnAccount | null | 'new'>(null);
   const [showErrors, setShowErrors] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [scale, setScale] = useState(1);
@@ -41,6 +51,7 @@ export default function App() {
     } else {
       setSuppliers(stored);
     }
+    setOwnAccounts(loadOwnAccounts());
     const storedForm = loadCurrentForm();
     if (storedForm) setForm(storedForm);
   }, []);
@@ -103,6 +114,39 @@ export default function App() {
     });
     if (form.supplierId === id) {
       setField('supplierId', null);
+    }
+  };
+
+  const selectOwnAccount = (a: OwnAccount) => {
+    setForm((f) => ({
+      ...f,
+      ownAccountId: a.id,
+      orderName: a.name,
+      orderAccountNumber: a.accountNumber,
+      updatedAt: Date.now(),
+    }));
+  };
+
+  const saveOwnAccount = (a: OwnAccount) => {
+    setOwnAccounts((prev) => {
+      const exists = prev.some((p) => p.id === a.id);
+      const next = exists ? prev.map((p) => (p.id === a.id ? a : p)) : [...prev, a];
+      saveOwnAccounts(next);
+      return next;
+    });
+    setEditingOwnAccount(null);
+    // Applique immédiatement le compte enregistré au formulaire courant.
+    selectOwnAccount(a);
+  };
+
+  const deleteOwnAccount = (id: string) => {
+    setOwnAccounts((prev) => {
+      const next = prev.filter((p) => p.id !== id);
+      saveOwnAccounts(next);
+      return next;
+    });
+    if (form.ownAccountId === id) {
+      setField('ownAccountId', null);
     }
   };
 
@@ -260,7 +304,16 @@ export default function App() {
 
         {/* Form */}
         <div className="no-print w-full md:w-[420px] shrink-0 overflow-y-auto border-r border-ink-100 bg-white px-5 py-5">
-          <TransferFormFields form={form} onChange={setField} errors={errors} />
+          <TransferFormFields
+            form={form}
+            onChange={setField}
+            errors={errors}
+            ownAccounts={ownAccounts}
+            onSelectOwnAccount={selectOwnAccount}
+            onAddOwnAccount={() => setEditingOwnAccount('new')}
+            onEditOwnAccount={(a) => setEditingOwnAccount(a)}
+            onDeleteOwnAccount={deleteOwnAccount}
+          />
         </div>
 
         {/* Preview */}
@@ -280,6 +333,14 @@ export default function App() {
           initial={editingSupplier === 'new' ? null : editingSupplier}
           onSave={saveSupplier}
           onCancel={() => setEditingSupplier(null)}
+        />
+      )}
+
+      {editingOwnAccount !== null && (
+        <OwnAccountForm
+          initial={editingOwnAccount === 'new' ? null : editingOwnAccount}
+          onSave={saveOwnAccount}
+          onCancel={() => setEditingOwnAccount(null)}
         />
       )}
     </div>

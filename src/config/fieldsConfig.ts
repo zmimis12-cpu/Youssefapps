@@ -29,9 +29,9 @@ export const fields: Record<string, FieldPos> = {
   operationNature: { x: 68, y: 159, width: 125, fontSize: 10 },
   invoiceRef: { x: 68, y: 165, width: 125, fontSize: 10 },
 
-  importTitle: { x: 55, y: 187, width: 140, fontSize: 10 },
-  references: { x: 55, y: 193, width: 140, fontSize: 10 },
-  changeOfficeAuth: { x: 100, y: 199, width: 95, fontSize: 10 },
+  importTitle: { x: 62, y: 187, width: 130, fontSize: 10 },
+  references: { x: 15, y: 197, width: 180, fontSize: 10 },
+  changeOfficeAuth: { x: 15, y: 205, width: 180, fontSize: 10 },
 
   cityDate: { x: 15, y: 214, width: 100, fontSize: 11 },
 };

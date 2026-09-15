@@ -184,18 +184,18 @@ export default function A4Preview({ form }: Props) {
       <DataText field="importTitle" value={form.importTitle} mono={false} />
       <FieldLine top={193} label="Références — domicilié(s) chez" />
       <DataText field="references" value={form.references} mono={false} />
-      <FieldLine top={199} width={80} label="Autorisation Office des Changes N°" />
+      <FieldLine top={201} label="Autorisation Office des Changes N°" />
       <DataText field="changeOfficeAuth" value={form.changeOfficeAuth} mono={false} />
-      <Underline top={204} />
+      <Underline top={210} />
 
       {/* Date / lieu — sans signature reconstituée */}
       <div
         className="absolute text-[10.5pt]"
-        style={{ top: '214mm', left: '15mm' }}
+        style={{ top: '215mm', left: '15mm' }}
       >
         {form.city}, le {form.date ? new Date(form.date).toLocaleDateString('fr-FR') : ''}
       </div>
-      <div className="absolute text-[9pt] text-[#647089]" style={{ top: '214mm', right: '15mm', width: '55mm', textAlign: 'right' }}>
+      <div className="absolute text-[9pt] text-[#647089]" style={{ top: '215mm', right: '15mm', width: '55mm', textAlign: 'right' }}>
         Signature donneur d'ordre
         <div className="mt-[10mm] border-b border-[#111417]/30" />
       </div>

@@ -29,11 +29,20 @@ Le résultat est généré dans `dist/`.
 - **Fournisseurs** (sidebar gauche) : ajouter / modifier / supprimer / rechercher,
   sauvegardés automatiquement dans le navigateur (localStorage). 3 fournisseurs
   fictifs sont préchargés à la première ouverture.
+- **Mon compte (donneur d'ordre)** : dans la section "Donneur d'ordre" du
+  formulaire, enregistre ton/tes propre(s) nom(s)/raison(s) sociale(s) et numéro(s)
+  de compte (bouton "+"). Une fois enregistrés, sélectionne-les depuis le menu
+  déroulant pour préremplir automatiquement le formulaire — modifiable et
+  supprimable à tout moment (✎ / ✕), sauvegardés en localStorage.
 - **Sélection fournisseur → formulaire** : cliquer sur un fournisseur remplit
   automatiquement les champs bénéficiaire.
-- **Montant → lettres automatique** : tape un montant (ex: 27302.50) et choisis une
-  devise (MAD, USD, EUR, GBP, CNY) → le montant en chiffres ET en lettres françaises
-  s'affichent instantanément dans le formulaire et sur l'aperçu A4.
+- **Montant → lettres automatique, toutes devises** : tape un montant (ex:
+  27302.50) et choisis une devise dans le sélecteur avec recherche (par code ISO,
+  nom ou pays — ex. "yen", "JPY", "livre", "dirham"...) parmi ~160 devises du monde
+  → le montant en chiffres ET en lettres françaises s'affichent instantanément.
+  Les devises les plus courantes (MAD, USD, EUR, GBP, CNY, CHF, etc.) ont un nom
+  français précis et un pluriel correct ; les autres utilisent le nom dérivé
+  automatiquement de la liste ISO 4217.
 - **Aperçu A4 en temps réel** : toute modification à gauche se répercute immédiatement
   sur le document à droite, positionné aux bonnes coordonnées.
 - **Impression** : bouton "🖨 Imprimer A4" → n'imprime que la feuille A4 (sidebar et

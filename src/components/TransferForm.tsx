@@ -1,19 +1,42 @@
-import type { Currency, OperationType, TransferForm as TransferFormType } from '../types';
+import type { OperationType, OwnAccount, TransferForm as TransferFormType } from '../types';
 import AmountToWords from './AmountToWords';
+import CurrencySelect from './CurrencySelect';
+import OwnAccountPicker from './OwnAccountPicker';
 
 interface Props {
   form: TransferFormType;
   onChange: <K extends keyof TransferFormType>(key: K, value: TransferFormType[K]) => void;
   errors: Partial<Record<keyof TransferFormType, boolean>>;
+  ownAccounts: OwnAccount[];
+  onSelectOwnAccount: (a: OwnAccount) => void;
+  onAddOwnAccount: () => void;
+  onEditOwnAccount: (a: OwnAccount) => void;
+  onDeleteOwnAccount: (id: string) => void;
 }
 
-const currencies: Currency[] = ['MAD', 'USD', 'EUR', 'GBP', 'CNY'];
 const operationTypes: OperationType[] = ['SWIFT', 'TELEX', 'CHEQUE'];
 
-export default function TransferForm({ form, onChange, errors }: Props) {
+export default function TransferForm({
+  form,
+  onChange,
+  errors,
+  ownAccounts,
+  onSelectOwnAccount,
+  onAddOwnAccount,
+  onEditOwnAccount,
+  onDeleteOwnAccount,
+}: Props) {
   return (
     <div className="space-y-6">
       <Section title="Donneur d'ordre">
+        <OwnAccountPicker
+          accounts={ownAccounts}
+          selectedId={form.ownAccountId}
+          onSelect={onSelectOwnAccount}
+          onAddNew={onAddOwnAccount}
+          onEdit={onEditOwnAccount}
+          onDelete={onDeleteOwnAccount}
+        />
         <Row>
           <TextInput
             label="Compte N°"
@@ -50,22 +73,11 @@ export default function TransferForm({ form, onChange, errors }: Props) {
           </div>
         </div>
         <Row>
-          <div>
-            <span className="text-xs font-medium text-ink-500">
-              Devise <span className="text-red-500">*</span>
-            </span>
-            <select
-              value={form.currency}
-              onChange={(e) => onChange('currency', e.target.value as Currency)}
-              className={selectClass(errors.currency)}
-            >
-              {currencies.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CurrencySelect
+            value={form.currency}
+            onChange={(c) => onChange('currency', c)}
+            error={errors.currency}
+          />
           <TextInput
             label="Montant"
             value={form.amount}
@@ -203,12 +215,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function Row({ children }: { children: React.ReactNode }) {
   return <div className="grid grid-cols-2 gap-3">{children}</div>;
-}
-
-function selectClass(error?: boolean) {
-  return `mt-1 w-full rounded-md border px-2.5 py-1.5 text-sm text-ink-900 focus:outline-none focus:ring-2 focus:ring-teal-500/40 ${
-    error ? 'border-red-400' : 'border-ink-300 focus:border-teal-500'
-  }`;
 }
 
 function TextInput({
