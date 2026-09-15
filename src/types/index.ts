@@ -44,10 +44,16 @@ export interface TransferForm {
   // Sous couvert de
   importTitle: string;
   references: string;
+  domicileChez: string;
   changeOfficeAuth: string;
+  authDate: string;
   // Date
   city: string;
   date: string;
+  // Apparence du document
+  bankHeaderText: string; // logo / nom de banque en en-tête, modifiable ou vidable
+  showAgencyBox: boolean;
+  agencyBoxLabel: string;
   updatedAt: number;
 }
 
@@ -71,8 +77,13 @@ export const emptyForm = (): TransferForm => ({
   feesOnBeneficiary: '',
   importTitle: '',
   references: '',
+  domicileChez: '',
   changeOfficeAuth: '',
+  authDate: '',
   city: 'Casablanca',
   date: new Date().toISOString().slice(0, 10),
+  bankHeaderText: 'CIH BANK',
+  showAgencyBox: true,
+  agencyBoxLabel: "Cadre réservé à l'agence",
   updatedAt: Date.now(),
 });

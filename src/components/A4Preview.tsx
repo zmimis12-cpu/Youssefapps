@@ -98,15 +98,26 @@ export default function A4Preview({ form }: Props) {
 
   return (
     <div className="a4-sheet">
-      {/* En-tête — reprend les éléments imprimés du formulaire d'origine :
-          logotype CIH BANK à gauche, titre encadré "TRANSFERT A L'ETRANGER" à
-          droite. Aucun cachet ni signature bancaire n'est reproduit ici. */}
-      <div className="absolute left-[15mm] top-[13mm] flex items-baseline gap-[1.5mm]">
-        <span className="text-[15pt] font-bold tracking-tight" style={{ color: '#0b3d91' }}>
-          CIH
-        </span>
-        <span className="text-[15pt] font-bold tracking-tight text-[#111417]">BANK</span>
-      </div>
+      {/* En-tête — logotype de banque modifiable/masquable depuis le formulaire
+          (section "Document"), titre encadré "TRANSFERT A L'ETRANGER" fixe car
+          imprimé sur l'original. Aucun cachet ni signature bancaire reproduit. */}
+      {form.bankHeaderText.trim() && (
+        <div className="absolute left-[15mm] top-[13mm] flex items-baseline gap-[1.5mm]">
+          {(() => {
+            const parts = form.bankHeaderText.trim().split(' ');
+            const first = parts[0];
+            const rest = parts.slice(1).join(' ');
+            return (
+              <>
+                <span className="text-[15pt] font-bold tracking-tight" style={{ color: '#0b3d91' }}>
+                  {first}
+                </span>
+                {rest && <span className="text-[15pt] font-bold tracking-tight text-[#111417]">{rest}</span>}
+              </>
+            );
+          })()}
+        </div>
+      )}
       <div
         className="absolute right-[15mm] top-[12mm] border-2 border-[#111417] px-[4mm] py-[2mm] text-[11pt] font-bold text-center"
         style={{ letterSpacing: '0.03em' }}
@@ -190,40 +201,47 @@ export default function A4Preview({ form }: Props) {
       <Bar top={181} label="Sous couvert de" />
       <FieldLine top={187} label="Titre / importation" />
       <DataText field="importTitle" value={form.importTitle} mono={false} />
-      <FieldLine top={193} label="Références — domicilié(s) chez" />
+      <FieldLine top={193} left={15} width={33} label="Références" />
       <DataText field="references" value={form.references} mono={false} />
-      <FieldLine top={201} label="Autorisation Office des Changes N°" />
+      <FieldLine top={193} left={100} width={35} label="domicilié(s) chez" />
+      <DataText field="domicileChez" value={form.domicileChez} mono={false} />
+      <FieldLine top={199} left={15} width={58} label="Autorisation Office des Changes N°" />
       <DataText field="changeOfficeAuth" value={form.changeOfficeAuth} mono={false} />
-      <Underline top={210} />
+      <FieldLine top={199} left={146} width={12} label="Date" />
+      <DataText field="authDate" value={form.authDate} mono={false} />
+      <Underline top={205} />
 
       {/* Date / lieu — sans signature reconstituée */}
       <div
         className="absolute text-[10.5pt]"
-        style={{ top: '215mm', left: '15mm' }}
+        style={{ top: '212mm', left: '15mm' }}
       >
         {form.city}, le {form.date ? new Date(form.date).toLocaleDateString('fr-FR') : ''}
       </div>
-      <div className="absolute text-[9pt] text-[#647089]" style={{ top: '215mm', right: '15mm', width: '55mm', textAlign: 'right' }}>
+      <div className="absolute text-[9pt] text-[#647089]" style={{ top: '212mm', right: '15mm', width: '55mm', textAlign: 'right' }}>
         Signature donneur d'ordre
         <div className="mt-[10mm] border-b border-[#111417]/30" />
       </div>
 
       {/* Cadre réservé à l'agence — mêmes libellés imprimés que l'original.
           Zone volontairement laissée vierge : ni cachet ni signature d'agence
-          ne sont reproduits, cette partie reste à remplir par la banque. */}
-      <div
-        className="absolute left-[15mm] right-[15mm] border border-[#111417]/40"
-        style={{ top: '236mm', bottom: '15mm' }}
-      >
-        <div className="bg-[#14181f] text-white text-[8.5pt] px-[3mm]" style={{ height: '6mm', display: 'flex', alignItems: 'center' }}>
-          Cadre réservé à l'agence
+          ne sont reproduits, cette partie reste à remplir par la banque.
+          Masquable / renommable depuis le formulaire (section "Document"). */}
+      {form.showAgencyBox && (
+        <div
+          className="absolute left-[15mm] right-[15mm] border border-[#111417]/40"
+          style={{ top: '233mm', bottom: '15mm' }}
+        >
+          <div className="bg-[#14181f] text-white text-[8.5pt] px-[3mm]" style={{ height: '6mm', display: 'flex', alignItems: 'center' }}>
+            {form.agencyBoxLabel || "Cadre réservé à l'agence"}
+          </div>
+          <div className="relative" style={{ height: 'calc(100% - 6mm)' }}>
+            <div className="absolute left-[3mm] top-[4mm] text-[9pt] text-[#111417]">Blocage des fonds</div>
+            <div className="absolute left-[3mm] top-[11mm] text-[9pt] text-[#111417]">Contrôle</div>
+            <div className="absolute right-[3mm] top-[4mm] text-[9pt] text-[#111417]">Bon à opérer</div>
+          </div>
         </div>
-        <div className="relative" style={{ height: 'calc(100% - 6mm)' }}>
-          <div className="absolute left-[3mm] top-[4mm] text-[9pt] text-[#111417]">Blocage des fonds</div>
-          <div className="absolute left-[3mm] top-[11mm] text-[9pt] text-[#111417]">Contrôle</div>
-          <div className="absolute right-[3mm] top-[4mm] text-[9pt] text-[#111417]">Bon à opérer</div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

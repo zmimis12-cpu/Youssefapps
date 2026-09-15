@@ -174,16 +174,31 @@ export default function TransferForm({
           value={form.importTitle}
           onChange={(v) => onChange('importTitle', v)}
         />
-        <TextInput
-          label="Références / domicilié(s) chez"
-          value={form.references}
-          onChange={(v) => onChange('references', v)}
-        />
-        <TextInput
-          label="Autorisation Office des Changes N°"
-          value={form.changeOfficeAuth}
-          onChange={(v) => onChange('changeOfficeAuth', v)}
-        />
+        <Row>
+          <TextInput
+            label="Références"
+            value={form.references}
+            onChange={(v) => onChange('references', v)}
+          />
+          <TextInput
+            label="Domicilié(s) chez"
+            value={form.domicileChez}
+            onChange={(v) => onChange('domicileChez', v)}
+          />
+        </Row>
+        <Row>
+          <TextInput
+            label="Autorisation Office des Changes N°"
+            value={form.changeOfficeAuth}
+            onChange={(v) => onChange('changeOfficeAuth', v)}
+          />
+          <TextInput
+            label="Date (autorisation)"
+            value={form.authDate}
+            onChange={(v) => onChange('authDate', v)}
+            placeholder="jj/mm/aaaa"
+          />
+        </Row>
       </Section>
 
       <Section title="Date">
@@ -199,6 +214,32 @@ export default function TransferForm({
             />
           </div>
         </Row>
+      </Section>
+
+      <Section title="Document">
+        <TextInput
+          label="En-tête banque (modifiable, vide = masqué)"
+          value={form.bankHeaderText}
+          onChange={(v) => onChange('bankHeaderText', v)}
+          placeholder="CIH BANK"
+        />
+        <label className="flex items-center gap-2 text-sm text-ink-700">
+          <input
+            type="checkbox"
+            checked={form.showAgencyBox}
+            onChange={(e) => onChange('showAgencyBox', e.target.checked)}
+            className="h-4 w-4 rounded border-ink-300 text-teal-600 focus:ring-teal-500/40"
+          />
+          Afficher le cadre réservé à l'agence
+        </label>
+        {form.showAgencyBox && (
+          <TextInput
+            label="Libellé du cadre agence"
+            value={form.agencyBoxLabel}
+            onChange={(v) => onChange('agencyBoxLabel', v)}
+            placeholder="Cadre réservé à l'agence"
+          />
+        )}
       </Section>
     </div>
   );

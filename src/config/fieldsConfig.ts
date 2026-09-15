@@ -30,8 +30,10 @@ export const fields: Record<string, FieldPos> = {
   invoiceRef: { x: 68, y: 165, width: 125, fontSize: 10 },
 
   importTitle: { x: 62, y: 187, width: 130, fontSize: 10 },
-  references: { x: 15, y: 197, width: 180, fontSize: 10 },
-  changeOfficeAuth: { x: 15, y: 205, width: 180, fontSize: 10 },
+  references: { x: 49, y: 193, width: 48, fontSize: 10 },
+  domicileChez: { x: 138, y: 193, width: 57, fontSize: 10 },
+  changeOfficeAuth: { x: 74, y: 199, width: 68, fontSize: 10 },
+  authDate: { x: 160, y: 199, width: 35, fontSize: 10 },
 
   cityDate: { x: 15, y: 214, width: 100, fontSize: 11 },
 };
