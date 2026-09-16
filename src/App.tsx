@@ -49,6 +49,9 @@ export default function App() {
   const previewWrapRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<'unconfigured' | 'checking' | 'connected' | 'error'>(
+    isSupabaseConfigured ? 'checking' : 'unconfigured'
+  );
 
   // Initial load — essaie Supabase en premier (si configuré), retombe sur la
   // cache locale sinon (hors ligne, projet Supabase pas encore prêt, etc.)
@@ -67,8 +70,15 @@ export default function App() {
     setOwnAccounts(loadOwnAccounts());
 
     if (isSupabaseConfigured) {
+      let suppliersOk = false;
+      let ownAccountsOk = false;
+      const settle = () => {
+        if (suppliersOk && ownAccountsOk) setSyncStatus('connected');
+      };
+
       fetchSuppliersFromSupabase().then((remote) => {
         if (remote !== null) {
+          suppliersOk = true;
           if (remote.length > 0) {
             setSuppliers(remote);
             saveSuppliers(remote);
@@ -79,12 +89,19 @@ export default function App() {
             demoSuppliers.forEach((s) => upsertSupplierToSupabase(s));
             markSuppliersSeeded();
           }
+          settle();
+        } else {
+          setSyncStatus('error');
         }
       });
       fetchOwnAccountsFromSupabase().then((remote) => {
         if (remote !== null) {
+          ownAccountsOk = true;
           setOwnAccounts(remote);
           saveOwnAccounts(remote);
+          settle();
+        } else {
+          setSyncStatus('error');
         }
       });
     }
@@ -288,7 +305,14 @@ export default function App() {
             <h1 className="text-sm font-semibold text-ink-900">Virements fournisseurs</h1>
             <p className="text-[11px] text-ink-500">
               Préparation interne — CIH Bank
-              {isSupabaseConfigured && <span className="text-teal-600"> · synchronisé</span>}
+              {syncStatus === 'connected' && <span className="text-teal-600"> · synchronisé</span>}
+              {syncStatus === 'checking' && <span className="text-ink-500"> · connexion…</span>}
+              {syncStatus === 'error' && (
+                <span className="text-red-500" title="Supabase configuré mais injoignable — vérifie SUPABASE.md">
+                  {' '}
+                  · non synchronisé (local uniquement)
+                </span>
+              )}
             </p>
           </div>
         </div>
