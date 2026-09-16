@@ -38,7 +38,7 @@ function FieldLine({
       style={{ top: `${top}mm`, left: `${left}mm`, width: width ? `${width}mm` : undefined }}
     >
       {label}
-      {required ? <span className="text-[#a33]"> *</span> : null}
+      {required ? <span className="text-[#111417]"> *</span> : null}
     </div>
   );
 }
@@ -74,7 +74,7 @@ function DataText({
         width: `${pos.width}mm`,
         fontSize: `${pos.fontSize}pt`,
         textAlign: pos.align ?? 'left',
-        color: '#0b1f5c',
+        color: '#111417',
         wordBreak: 'break-word',
       }}
     >
@@ -89,7 +89,7 @@ function Checkbox({ x, y, checked }: { x: number; y: number; checked: boolean })
       className="absolute border border-[#111417] flex items-center justify-center"
       style={{ top: `${y}mm`, left: `${x}mm`, width: '4mm', height: '4mm' }}
     >
-      {checked && <span style={{ fontSize: '8pt', lineHeight: 1, color: '#0b1f5c' }}>✕</span>}
+      {checked && <span style={{ fontSize: '8pt', lineHeight: 1, color: '#111417' }}>✕</span>}
     </div>
   );
 }
@@ -112,7 +112,7 @@ export default function A4Preview({ form }: Props) {
             const rest = parts.slice(1).join(' ');
             return (
               <>
-                <span className="text-[15pt] font-bold tracking-tight" style={{ color: '#0b3d91' }}>
+                <span className="text-[15pt] font-bold tracking-tight" style={{ color: '#111417' }}>
                   {first}
                 </span>
                 {rest && <span className="text-[15pt] font-bold tracking-tight text-[#111417]">{rest}</span>}
@@ -139,7 +139,7 @@ export default function A4Preview({ form }: Props) {
         <div className="text-[10pt] font-bold text-[#111417] mt-[1mm]">C.I.H</div>
         <div className="border-t border-[#111417]/30 mt-[2mm]" />
         <div className="text-left px-[3mm] pt-[1.5mm] text-[8.5pt] text-[#111417]">Agence</div>
-        <div className="text-left px-[3mm] pt-[1mm] text-[11pt]" style={{ color: '#0b1f5c' }}>
+        <div className="text-left px-[3mm] pt-[1mm] text-[11pt] font-semibold" style={{ color: '#111417' }}>
           {form.agencyDestination}
         </div>
       </div>
@@ -155,7 +155,7 @@ export default function A4Preview({ form }: Props) {
       <Underline top={51} />
 
       <div
-        className="absolute left-[15mm] right-[15mm] text-[8.5pt] text-[#333d4d]"
+        className="absolute left-[15mm] right-[15mm] text-[8.5pt] text-[#111417]"
         style={{ top: '55mm' }}
       >
         Par le débit du compte susmentionné, veuillez virer :
@@ -169,7 +169,7 @@ export default function A4Preview({ form }: Props) {
       <div className="absolute text-[9pt]" style={{ top: '68.5mm', left: '61mm' }}>Télex</div>
       <Checkbox x={90} y={68.5} checked={form.operationType === 'CHEQUE'} />
       <div className="absolute text-[9pt]" style={{ top: '68.5mm', left: '96mm' }}>Chèque</div>
-      <div className="absolute text-[8pt] text-[#647089]" style={{ top: '68.5mm', right: '15mm' }}>
+      <div className="absolute text-[8pt] text-[#111417]" style={{ top: '68.5mm', right: '15mm' }}>
         (cocher la mention)
       </div>
 
@@ -231,7 +231,7 @@ export default function A4Preview({ form }: Props) {
       >
         {form.city}, le {form.date ? new Date(form.date).toLocaleDateString('fr-FR') : ''}
       </div>
-      <div className="absolute text-[9pt] text-[#647089]" style={{ top: '197mm', right: '15mm', width: '55mm', textAlign: 'right' }}>
+      <div className="absolute text-[9pt] text-[#111417]" style={{ top: '197mm', right: '15mm', width: '55mm', textAlign: 'right' }}>
         Signature donneur d'ordre
         <div className="mt-[10mm] border-b border-[#111417]/30" />
       </div>
