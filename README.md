@@ -26,6 +26,12 @@ Le résultat est généré dans `dist/`.
 
 ## Fonctionnalités
 
+- **Historique des documents** : chaque "Imprimer A4" ou "Export PDF" archive
+  automatiquement une copie complète du document (bouton "📜 Historique" en
+  haut). Filtrable par compte donneur d'ordre et par statut payé/non payé ;
+  chaque entrée peut être retéléchargée en PDF directement, marquée
+  payée/non payée, ou supprimée de l'historique.
+
 - **Fournisseurs** (sidebar gauche) : ajouter / modifier / supprimer / rechercher,
   sauvegardés automatiquement dans le navigateur (localStorage). 3 fournisseurs
   fictifs sont préchargés à la première ouverture.

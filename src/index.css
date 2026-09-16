@@ -53,6 +53,15 @@ body {
     margin: 0;
   }
 
+  /* Sans ça, la plupart des navigateurs n'impriment pas les fonds colorés
+     (barres noires des sections) par défaut : le texte blanc dessus devient
+     alors illisible sur fond blanc. Ça force l'impression telle qu'affichée. */
+  .a4-sheet, .a4-sheet * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
   html, body {
     background: white !important;
     margin: 0;

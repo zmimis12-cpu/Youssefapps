@@ -1,5 +1,4 @@
 -- A copier-coller tel quel dans Supabase -> SQL Editor -> New query -> Run.
--- Aucun caractere a retirer, ce fichier ne contient que du SQL.
 -- Peut etre relance sans risque meme si une partie a deja ete executee.
 
 create table if not exists suppliers (
@@ -25,8 +24,12 @@ create table if not exists own_accounts (
 create table if not exists transfer_history (
   id text primary key,
   printed_at timestamptz not null default now(),
+  paid boolean not null default false,
   form jsonb not null
 );
+
+-- Si la table transfer_history existait deja sans la colonne paid :
+alter table transfer_history add column if not exists paid boolean not null default false;
 
 alter table suppliers enable row level security;
 alter table own_accounts enable row level security;

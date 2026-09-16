@@ -60,6 +60,7 @@ export interface TransferForm {
 export interface ArchivedDocument {
   id: string;
   printedAt: number;
+  paid: boolean;
   form: TransferForm;
 }
 

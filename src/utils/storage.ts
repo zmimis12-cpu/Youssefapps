@@ -174,7 +174,7 @@ export async function deleteOwnAccountFromSupabase(id: string): Promise<void> {
 // formulaire à cet instant, pour pouvoir le retrouver et le réimprimer plus
 // tard, même après avoir perdu le papier. ----
 
-type HistoryRow = { id: string; printed_at: string; form: TransferForm };
+type HistoryRow = { id: string; printed_at: string; paid: boolean; form: TransferForm };
 
 export async function fetchHistoryFromSupabase(): Promise<ArchivedDocument[] | null> {
   if (!supabase) return null;
@@ -190,6 +190,7 @@ export async function fetchHistoryFromSupabase(): Promise<ArchivedDocument[] | n
   return (data as HistoryRow[]).map((r) => ({
     id: r.id,
     printedAt: new Date(r.printed_at).getTime(),
+    paid: r.paid ?? false,
     form: r.form,
   }));
 }
@@ -198,7 +199,7 @@ export async function upsertHistoryToSupabase(doc: ArchivedDocument): Promise<vo
   if (!supabase) return;
   const { error } = await supabase
     .from('transfer_history')
-    .upsert({ id: doc.id, printed_at: new Date(doc.printedAt).toISOString(), form: doc.form });
+    .upsert({ id: doc.id, printed_at: new Date(doc.printedAt).toISOString(), paid: doc.paid, form: doc.form });
   if (error) console.warn('Supabase (transfer_history) — échec de la sauvegarde distante :', error.message);
 }
 

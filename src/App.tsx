@@ -33,6 +33,44 @@ import {
 import { demoSuppliers } from './data/suppliers';
 import { parseAmount } from './utils/formatAmount';
 
+// Génère le PDF A4 à partir d'un élément .a4-sheet déjà rendu dans le DOM.
+async function renderSheetToPdf(sheetEl: HTMLElement, formData: TransferForm) {
+  const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+    import('html2canvas-pro'),
+    import('jspdf'),
+  ]);
+  const canvas = await html2canvas(sheetEl, { scale: 3, backgroundColor: '#ffffff' });
+  const imgData = canvas.toDataURL('image/png');
+  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+  pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+  const filename = `virement_${(formData.beneficiaryName || 'fournisseur').replace(/\s+/g, '_')}_${formData.date}.pdf`;
+  pdf.save(filename);
+}
+
+// Génère le PDF d'un document (ex. depuis l'historique) sans toucher au
+// formulaire actuellement affiché : le rend hors-écran, capture, puis nettoie.
+async function exportFormToPdf(formData: TransferForm) {
+  const ReactDOMClient = await import('react-dom/client');
+  const container = document.createElement('div');
+  container.style.position = 'fixed';
+  container.style.left = '-10000px';
+  container.style.top = '0';
+  document.body.appendChild(container);
+  const root = ReactDOMClient.createRoot(container);
+  try {
+    await new Promise<void>((resolve) => {
+      root.render(<A4Preview form={formData} />);
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+    const sheetEl = container.querySelector('.a4-sheet') as HTMLElement | null;
+    if (!sheetEl) throw new Error('Rendu du document introuvable');
+    await renderSheetToPdf(sheetEl, formData);
+  } finally {
+    root.unmount();
+    document.body.removeChild(container);
+  }
+}
+
 type RequiredKey =
   | 'beneficiaryAccountNumber'
   | 'beneficiaryName'
@@ -262,6 +300,7 @@ export default function App() {
     const doc: ArchivedDocument = {
       id: crypto.randomUUID(),
       printedAt: Date.now(),
+      paid: false,
       form,
     };
     setHistory((prev) => {
@@ -293,16 +332,7 @@ export default function App() {
     if (!sheetRef.current) return;
     setExporting(true);
     try {
-      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-        import('html2canvas-pro'),
-        import('jspdf'),
-      ]);
-      const canvas = await html2canvas(sheetRef.current, { scale: 3, backgroundColor: '#ffffff' });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-      pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
-      const filename = `virement_${(form.beneficiaryName || 'fournisseur').replace(/\s+/g, '_')}_${form.date}.pdf`;
-      pdf.save(filename);
+      await renderSheetToPdf(sheetRef.current, form);
       archiveCurrentDocument();
     } catch (err) {
       console.error('Export PDF a échoué :', err);
@@ -315,10 +345,26 @@ export default function App() {
     }
   };
 
-  const loadFromHistory = (doc: ArchivedDocument) => {
-    setForm({ ...doc.form, updatedAt: Date.now() });
-    setShowHistory(false);
-    setShowErrors(false);
+  // Réexport depuis l'historique : génère directement le PDF de ce document
+  // archivé, sans toucher au formulaire affiché et sans créer une nouvelle
+  // entrée d'historique (le document existe déjà).
+  const exportHistoryDocPdf = async (doc: ArchivedDocument) => {
+    try {
+      await exportFormToPdf(doc.form);
+    } catch (err) {
+      console.error('Export PDF (historique) a échoué :', err);
+      alert("L'export PDF a échoué. Réessaie dans quelques instants.");
+    }
+  };
+
+  const togglePaid = (id: string) => {
+    setHistory((prev) => {
+      const next = prev.map((d) => (d.id === id ? { ...d, paid: !d.paid } : d));
+      saveHistory(next);
+      const updated = next.find((d) => d.id === id);
+      if (updated) upsertHistoryToSupabase(updated);
+      return next;
+    });
   };
 
   const deleteFromHistory = (id: string) => {
@@ -481,7 +527,9 @@ export default function App() {
       {showHistory && (
         <HistoryModal
           history={history}
-          onLoad={loadFromHistory}
+          ownAccounts={ownAccounts}
+          onExportPdf={exportHistoryDocPdf}
+          onTogglePaid={togglePaid}
           onDelete={deleteFromHistory}
           onClose={() => setShowHistory(false)}
         />
