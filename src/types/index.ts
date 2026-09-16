@@ -57,6 +57,12 @@ export interface TransferForm {
   updatedAt: number;
 }
 
+export interface ArchivedDocument {
+  id: string;
+  printedAt: number;
+  form: TransferForm;
+}
+
 export const emptyForm = (): TransferForm => ({
   id: crypto.randomUUID(),
   ownAccountId: null,

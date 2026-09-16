@@ -5,7 +5,8 @@ import A4Preview from './components/A4Preview';
 import PrintButton from './components/PrintButton';
 import SupplierForm from './components/SupplierForm';
 import OwnAccountForm from './components/OwnAccountForm';
-import type { OwnAccount, Supplier, TransferForm } from './types';
+import HistoryModal from './components/HistoryModal';
+import type { ArchivedDocument, OwnAccount, Supplier, TransferForm } from './types';
 import { emptyForm } from './types';
 import {
   loadSuppliers,
@@ -14,12 +15,17 @@ import {
   saveOwnAccounts,
   loadCurrentForm,
   saveCurrentForm,
+  loadHistory,
+  saveHistory,
   fetchSuppliersFromSupabase,
   upsertSupplierToSupabase,
   deleteSupplierFromSupabase,
   fetchOwnAccountsFromSupabase,
   upsertOwnAccountToSupabase,
   deleteOwnAccountFromSupabase,
+  fetchHistoryFromSupabase,
+  upsertHistoryToSupabase,
+  deleteHistoryFromSupabase,
   isSupabaseConfigured,
   haveSuppliersBeenSeeded,
   markSuppliersSeeded,
@@ -39,10 +45,12 @@ type RequiredKey =
 export default function App() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [ownAccounts, setOwnAccounts] = useState<OwnAccount[]>([]);
+  const [history, setHistory] = useState<ArchivedDocument[]>([]);
   const [query, setQuery] = useState('');
   const [form, setForm] = useState<TransferForm>(emptyForm());
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null | 'new'>(null);
   const [editingOwnAccount, setEditingOwnAccount] = useState<OwnAccount | null | 'new'>(null);
+  const [showHistory, setShowHistory] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [scale, setScale] = useState(1);
@@ -68,6 +76,7 @@ export default function App() {
       setSuppliers(local);
     }
     setOwnAccounts(loadOwnAccounts());
+    setHistory(loadHistory());
 
     if (isSupabaseConfigured) {
       let suppliersOk = false;
@@ -112,6 +121,12 @@ export default function App() {
           settle();
         } else {
           setSyncStatus('error');
+        }
+      });
+      fetchHistoryFromSupabase().then((remote) => {
+        if (remote !== null) {
+          setHistory(remote);
+          saveHistory(remote);
         }
       });
     }
@@ -243,6 +258,20 @@ export default function App() {
     return missing;
   };
 
+  const archiveCurrentDocument = () => {
+    const doc: ArchivedDocument = {
+      id: crypto.randomUUID(),
+      printedAt: Date.now(),
+      form,
+    };
+    setHistory((prev) => {
+      const next = [doc, ...prev];
+      saveHistory(next);
+      return next;
+    });
+    upsertHistoryToSupabase(doc);
+  };
+
   const handlePrint = () => {
     const missing = missingFieldsMessage();
     if (missing.length > 0) {
@@ -250,6 +279,7 @@ export default function App() {
       alert(`Merci de compléter les champs obligatoires avant d'imprimer :\n\n• ${missing.join('\n• ')}`);
       return;
     }
+    archiveCurrentDocument();
     window.print();
   };
 
@@ -273,6 +303,7 @@ export default function App() {
       pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
       const filename = `virement_${(form.beneficiaryName || 'fournisseur').replace(/\s+/g, '_')}_${form.date}.pdf`;
       pdf.save(filename);
+      archiveCurrentDocument();
     } catch (err) {
       console.error('Export PDF a échoué :', err);
       alert(
@@ -282,6 +313,21 @@ export default function App() {
     } finally {
       setExporting(false);
     }
+  };
+
+  const loadFromHistory = (doc: ArchivedDocument) => {
+    setForm({ ...doc.form, updatedAt: Date.now() });
+    setShowHistory(false);
+    setShowErrors(false);
+  };
+
+  const deleteFromHistory = (id: string) => {
+    setHistory((prev) => {
+      const next = prev.filter((d) => d.id !== id);
+      saveHistory(next);
+      return next;
+    });
+    deleteHistoryFromSupabase(id);
   };
 
   const handleNew = () => {
@@ -344,6 +390,12 @@ export default function App() {
             className="rounded-md px-3 py-1.5 text-sm text-ink-700 hover:bg-ink-100 transition-colors"
           >
             Réinitialiser
+          </button>
+          <button
+            onClick={() => setShowHistory(true)}
+            className="rounded-md px-3 py-1.5 text-sm text-ink-700 hover:bg-ink-100 transition-colors"
+          >
+            📜 Historique
           </button>
           <button
             onClick={handleExportPdf}
@@ -423,6 +475,15 @@ export default function App() {
           initial={editingOwnAccount === 'new' ? null : editingOwnAccount}
           onSave={saveOwnAccount}
           onCancel={() => setEditingOwnAccount(null)}
+        />
+      )}
+
+      {showHistory && (
+        <HistoryModal
+          history={history}
+          onLoad={loadFromHistory}
+          onDelete={deleteFromHistory}
+          onClose={() => setShowHistory(false)}
         />
       )}
     </div>
