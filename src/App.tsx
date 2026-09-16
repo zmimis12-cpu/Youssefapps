@@ -21,6 +21,8 @@ import {
   upsertOwnAccountToSupabase,
   deleteOwnAccountFromSupabase,
   isSupabaseConfigured,
+  haveSuppliersBeenSeeded,
+  markSuppliersSeeded,
 } from './utils/storage';
 import { demoSuppliers } from './data/suppliers';
 import { parseAmount } from './utils/formatAmount';
@@ -50,10 +52,18 @@ export default function App() {
 
   // Initial load — essaie Supabase en premier (si configuré), retombe sur la
   // cache locale sinon (hors ligne, projet Supabase pas encore prêt, etc.)
+  // Les 3 fournisseurs de démo ne sont semés qu'au tout premier lancement
+  // (voir haveSuppliersBeenSeeded) — jamais réintroduits après une suppression.
   useEffect(() => {
     const local = loadSuppliers();
-    setSuppliers(local.length > 0 ? local : demoSuppliers);
-    if (local.length === 0) saveSuppliers(demoSuppliers);
+    const alreadySeeded = haveSuppliersBeenSeeded();
+    if (!alreadySeeded && local.length === 0) {
+      setSuppliers(demoSuppliers);
+      saveSuppliers(demoSuppliers);
+      markSuppliersSeeded();
+    } else {
+      setSuppliers(local);
+    }
     setOwnAccounts(loadOwnAccounts());
 
     if (isSupabaseConfigured) {
@@ -62,10 +72,12 @@ export default function App() {
           if (remote.length > 0) {
             setSuppliers(remote);
             saveSuppliers(remote);
-          } else if (local.length === 0) {
-            // Base distante vide et rien en local : on y sème les 3 fournisseurs
-            // de démonstration pour un premier essai.
+            markSuppliersSeeded();
+          } else if (!alreadySeeded && local.length === 0) {
+            // Base distante vide et rien en local : vrai premier lancement,
+            // on y sème les 3 fournisseurs de démonstration.
             demoSuppliers.forEach((s) => upsertSupplierToSupabase(s));
+            markSuppliersSeeded();
           }
         }
       });

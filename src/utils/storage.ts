@@ -4,6 +4,19 @@ import { supabase, isSupabaseConfigured } from './supabaseClient';
 const SUPPLIERS_KEY = 'virement.suppliers.v1';
 const CURRENT_FORM_KEY = 'virement.currentForm.v1';
 const OWN_ACCOUNTS_KEY = 'virement.ownAccounts.v1';
+const SUPPLIERS_SEEDED_KEY = 'virement.suppliersSeeded.v1';
+
+// Distingue "jamais utilisé" (on peut semer les 3 fournisseurs de démo) de
+// "l'utilisateur a tout supprimé" (une liste vide qu'il faut respecter).
+// Sans ça, supprimer tous les fournisseurs puis recharger la page les fait
+// réapparaître, puisqu'une liste vide ressemblait à un premier lancement.
+export function haveSuppliersBeenSeeded(): boolean {
+  return localStorage.getItem(SUPPLIERS_SEEDED_KEY) === '1';
+}
+
+export function markSuppliersSeeded() {
+  localStorage.setItem(SUPPLIERS_SEEDED_KEY, '1');
+}
 
 // ---- Cache locale (localStorage) — toujours utilisée pour un chargement
 // instantané et comme filet de secours si Supabase est indisponible. ----
