@@ -88,6 +88,16 @@ export default function App() {
             // on y sème les 3 fournisseurs de démonstration.
             demoSuppliers.forEach((s) => upsertSupplierToSupabase(s));
             markSuppliersSeeded();
+          } else {
+            // Base distante réellement vide (déjà initialisée ailleurs, tout
+            // supprimé) : c'est la source de vérité une fois Supabase actif —
+            // on aligne ce navigateur dessus au lieu de garder son ancien
+            // cache local. Sans ce cas, un appareil resynchronisé après une
+            // suppression sur un autre appareil gardait ses fournisseurs
+            // obsolètes indéfiniment.
+            setSuppliers([]);
+            saveSuppliers([]);
+            markSuppliersSeeded();
           }
           settle();
         } else {
