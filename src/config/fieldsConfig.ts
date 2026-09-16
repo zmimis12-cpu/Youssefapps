@@ -12,8 +12,8 @@ export interface FieldPos {
 }
 
 export const fields: Record<string, FieldPos> = {
-  orderAccountNumber: { x: 62, y: 47, width: 90, fontSize: 12 },
-  orderName: { x: 62, y: 40, width: 100, fontSize: 10.5 },
+  orderAccountNumber: { x: 62, y: 47, width: 68, fontSize: 12 },
+  orderName: { x: 62, y: 40, width: 68, fontSize: 10.5 },
 
   currency: { x: 55, y: 82.5, width: 45, fontSize: 10.5 },
   amountDigits: { x: 140, y: 82.5, width: 55, fontSize: 10 },

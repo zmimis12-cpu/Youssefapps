@@ -7,13 +7,24 @@ sont dans `.env` à la racine du projet.
 ⚠️ Il manque une seule étape que je ne peux pas faire à ta place : créer les
 deux tables. La clé fournie est la clé "anon" (publique, utilisée par le
 navigateur) — elle ne permet pas de créer des tables, seulement de lire/écrire
-des lignes une fois qu'elles existent.
+des lignes une fois qu'elles existent. Tant que ce n'est pas fait, l'app
+continue de fonctionner normalement en local (les erreurs 404 / "table not
+found" que tu vois dans la console sont attendues, sans conséquence).
 
 ## 1. Crée les tables
 
-Dans le dashboard Supabase → **SQL Editor** → colle et exécute ceci en une fois :
+**Le plus simple** : ouvre le fichier `supabase_setup.sql` (à la racine du
+projet, à côté de ce fichier) — il ne contient que du SQL, rien d'autre à
+retirer. Sélectionne tout (Ctrl+A / Cmd+A), copie, colle dans Supabase →
+**SQL Editor** → **New query**, puis clique **Run**.
 
-```sql
+Sinon, voici le même contenu ici — colle **uniquement le SQL, sans les trois
+lignes de ``` qui l'entourent dans ce document** (ce sont des marqueurs
+Markdown, pas du SQL — s'ils sont collés dans l'éditeur, tu obtiens l'erreur
+"syntax error at or near ```") :
+
+```
+-- DÉBUT
 create table if not exists suppliers (
   id text primary key,
   name text not null default '',
@@ -42,12 +53,19 @@ create policy "anon full access" on suppliers
 
 create policy "anon full access" on own_accounts
   for all using (true) with check (true);
+-- FIN
 ```
 
-Une fois exécuté, recharge l'application : elle bascule automatiquement sur
-Supabase (indicateur "· synchronisé" en haut à gauche), sème les 3
-fournisseurs de démo si la table est vide, et garde toujours une copie locale
-(localStorage) en secours si la connexion tombe.
+Une fois exécuté sans erreur, recharge l'application : elle bascule
+automatiquement sur Supabase (indicateur "· synchronisé" en haut à gauche),
+sème les 3 fournisseurs de démo si la table est vide, et garde toujours une
+copie locale (localStorage) en secours si la connexion tombe.
+
+**Vérifier que ça a marché** : dans le dashboard Supabase → **Table Editor**,
+tu dois voir apparaître `suppliers` et `own_accounts` dans la liste des
+tables à gauche. Si l'erreur persiste, vérifie qu'il ne reste aucun caractère
+` (accent grave / backtick) au tout début ou à la toute fin de ce que tu as
+collé — c'est la cause la plus fréquente de ce message d'erreur précis.
 
 ## 2. Ce que ça change concrètement
 

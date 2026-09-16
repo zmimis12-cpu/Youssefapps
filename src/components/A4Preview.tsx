@@ -127,7 +127,24 @@ export default function A4Preview({ form }: Props) {
       >
         TRANSFERT A L'ETRANGER
       </div>
-      <div className="absolute left-[15mm] top-[22mm] right-[15mm] border-t border-[#111417]/30" />
+
+      {/* Cadre "Destinataire" — reproduit le cadre imprimé sous le titre
+          (banque + agence destinataire). Aucun cachet, seulement le texte
+          imprimé "C.I.H" et le champ "Agence", modifiable dans "Document". */}
+      <div
+        className="absolute border border-[#111417]/70 text-center"
+        style={{ left: '133mm', right: '15mm', top: '24mm', bottom: '244mm' }}
+      >
+        <div className="text-[8pt] tracking-[0.15em] text-[#111417] pt-[2mm]">— DESTINATAIRE —</div>
+        <div className="text-[10pt] font-bold text-[#111417] mt-[1mm]">C.I.H</div>
+        <div className="border-t border-[#111417]/30 mt-[2mm]" />
+        <div className="text-left px-[3mm] pt-[1.5mm] text-[8.5pt] text-[#111417]">Agence</div>
+        <div className="text-left px-[3mm] pt-[1mm] text-[11pt]" style={{ color: '#0b1f5c' }}>
+          {form.agencyDestination}
+        </div>
+      </div>
+
+      <div className="absolute left-[15mm] top-[22mm] right-[130mm] border-t border-[#111417]/30" />
 
       {/* Donneur d'ordre */}
       <FieldLine top={27} label="Donneur d'Ordre" />
@@ -238,11 +255,6 @@ export default function A4Preview({ form }: Props) {
             <div className="absolute left-[3mm] top-[11mm] text-[9pt] text-[#111417]">
               {form.agencyBoxControle}
             </div>
-            {form.agencyDestination.trim() && (
-              <div className="absolute left-[3mm] top-[18mm] text-[9pt] text-[#111417]">
-                Destinataire : {form.agencyDestination}
-              </div>
-            )}
             <div className="absolute right-[3mm] top-[4mm] text-[9pt] text-[#111417]">
               {form.agencyBoxBonAOperer}
             </div>
