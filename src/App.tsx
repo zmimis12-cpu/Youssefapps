@@ -5,7 +5,7 @@ import A4Preview from './components/A4Preview';
 import PrintButton from './components/PrintButton';
 import SupplierForm from './components/SupplierForm';
 import OwnAccountForm from './components/OwnAccountForm';
-import HistoryModal from './components/HistoryModal';
+import HistorySidebar from './components/HistorySidebar';
 import type { ArchivedDocument, OwnAccount, Supplier, TransferForm } from './types';
 import { emptyForm } from './types';
 import {
@@ -88,7 +88,7 @@ export default function App() {
   const [form, setForm] = useState<TransferForm>(emptyForm());
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null | 'new'>(null);
   const [editingOwnAccount, setEditingOwnAccount] = useState<OwnAccount | null | 'new'>(null);
-  const [showHistory, setShowHistory] = useState(false);
+  const [leftPanel, setLeftPanel] = useState<'suppliers' | 'history'>('suppliers');
   const [showErrors, setShowErrors] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [scale, setScale] = useState(1);
@@ -438,7 +438,10 @@ export default function App() {
             Réinitialiser
           </button>
           <button
-            onClick={() => setShowHistory(true)}
+            onClick={() => {
+              setLeftPanel('history');
+              setSidebarOpen(true);
+            }}
             className="rounded-md px-3 py-1.5 text-sm text-ink-700 hover:bg-ink-100 transition-colors"
           >
             📜 Historique
@@ -457,23 +460,57 @@ export default function App() {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <div
-          className={`no-print fixed inset-y-0 left-0 z-40 w-72 transform transition-transform md:static md:translate-x-0 md:z-auto ${
+          className={`no-print fixed inset-y-0 left-0 z-40 w-72 flex flex-col transform transition-transform md:static md:translate-x-0 md:z-auto ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
-          <Sidebar
-            suppliers={suppliers}
-            query={query}
-            setQuery={setQuery}
-            selectedId={form.supplierId}
-            onSelect={(s) => {
-              selectSupplier(s);
-              setSidebarOpen(false);
-            }}
-            onEdit={(s) => setEditingSupplier(s)}
-            onDelete={deleteSupplier}
-            onAddNew={() => setEditingSupplier('new')}
-          />
+          <div className="flex border-b border-ink-100 bg-white shrink-0">
+            <button
+              onClick={() => setLeftPanel('suppliers')}
+              className={`flex-1 px-3 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                leftPanel === 'suppliers'
+                  ? 'text-teal-700 border-b-2 border-teal-600'
+                  : 'text-ink-500 hover:text-ink-900'
+              }`}
+            >
+              Fournisseurs
+            </button>
+            <button
+              onClick={() => setLeftPanel('history')}
+              className={`flex-1 px-3 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                leftPanel === 'history'
+                  ? 'text-teal-700 border-b-2 border-teal-600'
+                  : 'text-ink-500 hover:text-ink-900'
+              }`}
+            >
+              Historique
+            </button>
+          </div>
+          <div className="flex-1 min-h-0">
+            {leftPanel === 'suppliers' ? (
+              <Sidebar
+                suppliers={suppliers}
+                query={query}
+                setQuery={setQuery}
+                selectedId={form.supplierId}
+                onSelect={(s) => {
+                  selectSupplier(s);
+                  setSidebarOpen(false);
+                }}
+                onEdit={(s) => setEditingSupplier(s)}
+                onDelete={deleteSupplier}
+                onAddNew={() => setEditingSupplier('new')}
+              />
+            ) : (
+              <HistorySidebar
+                history={history}
+                ownAccounts={ownAccounts}
+                onExportPdf={exportHistoryDocPdf}
+                onTogglePaid={togglePaid}
+                onDelete={deleteFromHistory}
+              />
+            )}
+          </div>
         </div>
         {sidebarOpen && (
           <div
@@ -521,17 +558,6 @@ export default function App() {
           initial={editingOwnAccount === 'new' ? null : editingOwnAccount}
           onSave={saveOwnAccount}
           onCancel={() => setEditingOwnAccount(null)}
-        />
-      )}
-
-      {showHistory && (
-        <HistoryModal
-          history={history}
-          ownAccounts={ownAccounts}
-          onExportPdf={exportHistoryDocPdf}
-          onTogglePaid={togglePaid}
-          onDelete={deleteFromHistory}
-          onClose={() => setShowHistory(false)}
         />
       )}
     </div>

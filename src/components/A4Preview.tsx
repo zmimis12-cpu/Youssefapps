@@ -151,7 +151,7 @@ export default function A4Preview({ form }: Props) {
       <FieldLine top={40} label="Nom / raison sociale" />
       <DataText field="orderName" value={form.orderName} mono={false} bold />
       <FieldLine top={47} label="Compte N°" required />
-      <DataText field="orderAccountNumber" value={form.orderAccountNumber} />
+      <DataText field="orderAccountNumber" value={form.orderAccountNumber} bold />
       <Underline top={51} />
 
       <div
@@ -177,14 +177,15 @@ export default function A4Preview({ form }: Props) {
           fin du montant en chiffres ET du montant en lettres. */}
       <Bar top={76} label="La somme de" />
       <FieldLine top={83.5} left={15} width={38} label="Nature de la devise" required />
-      <DataText field="currency" value={writtenLabelFor(form.currency)} mono={false} />
+      <DataText field="currency" value={writtenLabelFor(form.currency)} mono={false} bold />
       <FieldLine top={83.5} left={100} width={38} label="Montant en chiffres" required />
       <DataText
         field="amountDigits"
         value={amountDigits ? `${amountDigits} ${writtenLabelFor(form.currency)}` : ''}
+        bold
       />
       <FieldLine top={90} label="Montant en lettres" required />
-      <DataText field="amountWords" value={amountWords} mono={false} />
+      <DataText field="amountWords" value={amountWords} mono={false} bold />
       <Underline top={103} />
 
       {/* Au profit de */}
@@ -194,7 +195,7 @@ export default function A4Preview({ form }: Props) {
       <FieldLine top={120.5} left={15} width={18} label="Pays" required />
       <DataText field="beneficiaryCountry" value={form.beneficiaryCountry} mono={false} />
       <FieldLine top={126.5} left={15} width={44} label="Domiciliation — Compte N°" required />
-      <DataText field="beneficiaryAccountNumber" value={form.beneficiaryAccountNumber} />
+      <DataText field="beneficiaryAccountNumber" value={form.beneficiaryAccountNumber} bold />
       <FieldLine top={132.5} label="Banque" required />
       <DataText field="beneficiaryBank" value={form.beneficiaryBank} mono={false} />
       <Underline top={137} />
