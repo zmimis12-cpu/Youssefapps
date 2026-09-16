@@ -197,7 +197,7 @@ export default function A4Preview({ form }: Props) {
       <FieldLine top={126.5} left={15} width={44} label="Domiciliation — Compte N°" required />
       <DataText field="beneficiaryAccountNumber" value={form.beneficiaryAccountNumber} bold />
       <FieldLine top={132.5} label="Banque" required />
-      <DataText field="beneficiaryBank" value={form.beneficiaryBank} mono={false} />
+      <DataText field="beneficiaryBank" value={form.beneficiaryBank} mono={false} bold />
       <Underline top={137} />
 
       {/* En règlement de */}
