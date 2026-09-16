@@ -17,15 +17,18 @@ const NO_ACCOUNT = '__none__';
 export default function HistorySidebar({ history, ownAccounts, onExportPdf, onTogglePaid, onDelete }: Props) {
   const [accountFilter, setAccountFilter] = useState<string>('all');
   const [paidFilter, setPaidFilter] = useState<PaidFilter>('all');
+  const [invoiceQuery, setInvoiceQuery] = useState('');
 
   const filtered = useMemo(() => {
+    const q = invoiceQuery.trim().toLowerCase();
     return history
       .filter(
         (d) =>
           accountFilter === 'all' || (d.form.ownAccountId ?? NO_ACCOUNT) === accountFilter
       )
-      .filter((d) => paidFilter === 'all' || (paidFilter === 'paid' ? d.paid : !d.paid));
-  }, [history, accountFilter, paidFilter]);
+      .filter((d) => paidFilter === 'all' || (paidFilter === 'paid' ? d.paid : !d.paid))
+      .filter((d) => !q || d.form.invoiceRef.toLowerCase().includes(q));
+  }, [history, accountFilter, paidFilter, invoiceQuery]);
 
   // Classement : un groupe par compte donneur d'ordre (dans l'ordre des
   // comptes enregistrés, puis "Sans compte associé"), documents les plus
@@ -54,6 +57,13 @@ export default function HistorySidebar({ history, ownAccounts, onExportPdf, onTo
     <aside className="flex h-full w-full flex-col border-r border-ink-100 bg-white">
       <div className="px-4 pt-5 pb-3 space-y-2.5">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-500">Historique</h2>
+
+        <input
+          value={invoiceQuery}
+          onChange={(e) => setInvoiceQuery(e.target.value)}
+          placeholder="Rechercher un N° de facture…"
+          className="w-full rounded-md border border-ink-300 bg-ink-50 px-2.5 py-1.5 text-sm text-ink-900 placeholder:text-ink-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500"
+        />
 
         <select
           value={accountFilter}
@@ -112,6 +122,12 @@ export default function HistorySidebar({ history, ownAccounts, onExportPdf, onTo
                             <>
                               <br />
                               {amount} {currencyLabel}
+                            </>
+                          )}
+                          {f.invoiceRef && (
+                            <>
+                              <br />
+                              Facture : {f.invoiceRef}
                             </>
                           )}
                         </p>
