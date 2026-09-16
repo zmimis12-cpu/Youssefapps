@@ -29,7 +29,7 @@ export default function SupplierForm({ initial, onSave, onCancel }: Props) {
   const set = <K extends keyof Supplier>(key: K, value: Supplier[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
 
-  const valid = draft.name.trim() && draft.accountNumber.trim() && draft.bankName.trim();
+  const valid = draft.name.trim() && draft.country.trim() && draft.accountNumber.trim() && draft.bankName.trim();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/40 px-4">
@@ -44,7 +44,7 @@ export default function SupplierForm({ initial, onSave, onCancel }: Props) {
           <Field label="Adresse" value={draft.address} onChange={(v) => set('address', v)} />
           <div className="grid grid-cols-2 gap-3">
             <Field label="Ville" value={draft.city} onChange={(v) => set('city', v)} />
-            <Field label="Pays" value={draft.country} onChange={(v) => set('country', v)} />
+            <Field label="Pays" value={draft.country} onChange={(v) => set('country', v)} required />
           </div>
           <Field
             label="Numéro de compte bénéficiaire"
