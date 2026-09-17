@@ -33,6 +33,86 @@ import {
 import { demoSuppliers } from './data/suppliers';
 import { parseAmount } from './utils/formatAmount';
 
+// Un canvas quasi entièrement blanc = échec silencieux du rendu SVG
+// foreignObject (bug connu sur WebKit). On sous-échantillonne pour rester
+// rapide même sur un grand canvas.
+function isCanvasBlank(canvas: HTMLCanvasElement): boolean {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return false;
+  const step = 17; // pas premier pour éviter de retomber sur un motif régulier
+  const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  let nonWhite = 0;
+  for (let i = 0; i < data.length; i += 4 * step) {
+    if (data[i] < 250 || data[i + 1] < 250 || data[i + 2] < 250) {
+      nonWhite++;
+      if (nonWhite > 20) return false;
+    }
+  }
+  return true;
+}
+
+// Génère le PDF A4 à partir d'un élément .a4-sheet déjà rendu dans le DOM.
+// Le document (A4Preview) n'utilise que des styles inline, jamais de
+// classes Tailwind : sur certains navigateurs, html2canvas ne parvient pas à
+// lire la feuille de style externe générée par Tailwind v4 et ignore alors
+// silencieusement tout le style, y compris "position: absolute" — d'où un
+// document qui s'affichait en texte brut empilé. Les styles inline restent
+// toujours appliqués car ce sont des propriétés du DOM, jamais dépendantes
+// d'une feuille de style externe.
+async function renderSheetToPdf(sheetEl: HTMLElement, formData: TransferForm) {
+  const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+    import('html2canvas-pro'),
+    import('jspdf'),
+  ]);
+  await document.fonts.ready;
+
+  const baseOptions = {
+    scale: 3,
+    backgroundColor: '#ffffff',
+    useCORS: true,
+    windowWidth: sheetEl.scrollWidth,
+    windowHeight: sheetEl.scrollHeight,
+  } as const;
+
+  // Le rendu SVG foreignObject donne le meilleur résultat texte, mais rend
+  // une page blanche sur certains WebKit (bug connu de la librairie) — on
+  // l'essaie d'abord et on retombe sur le rendu DOM manuel seulement si la
+  // page obtenue est vide.
+  let canvas = await html2canvas(sheetEl, { ...baseOptions, foreignObjectRendering: true });
+  if (isCanvasBlank(canvas)) {
+    canvas = await html2canvas(sheetEl, { ...baseOptions, foreignObjectRendering: false });
+  }
+  const imgData = canvas.toDataURL('image/png');
+  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+  pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+  const filename = `virement_${(formData.beneficiaryName || 'fournisseur').replace(/\s+/g, '_')}_${formData.date}.pdf`;
+  pdf.save(filename);
+}
+
+// Génère le PDF d'un document (ex. depuis l'historique) sans toucher au
+// formulaire actuellement affiché : le rend hors-écran, capture, puis nettoie.
+async function exportFormToPdf(formData: TransferForm) {
+  const ReactDOMClient = await import('react-dom/client');
+  const container = document.createElement('div');
+  container.style.position = 'fixed';
+  container.style.left = '-10000px';
+  container.style.top = '0';
+  document.body.appendChild(container);
+  const root = ReactDOMClient.createRoot(container);
+  try {
+    await new Promise<void>((resolve) => {
+      root.render(<A4Preview form={formData} />);
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+    const sheetEl = container.querySelector('.a4-sheet') as HTMLElement | null;
+    if (!sheetEl) throw new Error('Rendu du document introuvable');
+    await renderSheetToPdf(sheetEl, formData);
+  } finally {
+    root.unmount();
+    document.body.removeChild(container);
+  }
+}
+
 type RequiredKey =
   | 'beneficiaryAccountNumber'
   | 'beneficiaryName'
@@ -53,6 +133,7 @@ export default function App() {
   const [leftPanel, setLeftPanel] = useState<'suppliers' | 'history'>('suppliers');
   const [showErrors, setShowErrors] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [scale, setScale] = useState(1);
   const previewWrapRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -283,38 +364,39 @@ export default function App() {
     window.print();
   };
 
-  const handleExportPdf = () => {
+  const handleExportPdf = async () => {
     const missing = missingFieldsMessage();
     if (missing.length > 0) {
       setShowErrors(true);
       alert(`Merci de compléter les champs obligatoires avant d'exporter :\n\n• ${missing.join('\n• ')}`);
       return;
     }
-    archiveCurrentDocument();
-    // Utilise le même moteur que "Imprimer A4" (rendu natif du navigateur) au
-    // lieu de reconstruire une image du document : c'est la seule méthode
-    // qui garantit un résultat identique à ce qui est affiché à l'écran,
-    // sur tous les navigateurs. Dans la fenêtre d'impression qui s'ouvre,
-    // choisir "Enregistrer au format PDF" comme destination.
-    window.print();
+    if (!sheetRef.current) return;
+    setExporting(true);
+    try {
+      await renderSheetToPdf(sheetRef.current, form);
+      archiveCurrentDocument();
+    } catch (err) {
+      console.error('Export PDF a échoué :', err);
+      alert(
+        "L'export PDF a échoué. Réessaie, ou utilise \"Imprimer A4\" puis choisis " +
+          '"Enregistrer au format PDF" dans la fenêtre d\'impression du navigateur.'
+      );
+    } finally {
+      setExporting(false);
+    }
   };
 
-  // Réimpression depuis l'historique : bascule brièvement le formulaire
-  // affiché sur ce document archivé, ouvre la fenêtre d'impression native du
-  // navigateur (même moteur fiable que "Imprimer A4"), puis restaure le
-  // formulaire en cours une fois la fenêtre d'impression refermée. Ne crée
-  // pas de nouvelle entrée d'historique (le document existe déjà).
-  const exportHistoryDocPdf = (doc: ArchivedDocument) => {
-    const previousForm = form;
-    setForm(doc.form);
-    const restore = () => {
-      setForm(previousForm);
-      window.removeEventListener('afterprint', restore);
-    };
-    window.addEventListener('afterprint', restore);
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => window.print());
-    });
+  // Réexport depuis l'historique : génère directement le PDF de ce document
+  // archivé, sans toucher au formulaire affiché et sans créer une nouvelle
+  // entrée d'historique (le document existe déjà).
+  const exportHistoryDocPdf = async (doc: ArchivedDocument) => {
+    try {
+      await exportFormToPdf(doc.form);
+    } catch (err) {
+      console.error('Export PDF (historique) a échoué :', err);
+      alert("L'export PDF a échoué. Réessaie dans quelques instants.");
+    }
   };
 
   const togglePaid = (id: string) => {
@@ -408,9 +490,10 @@ export default function App() {
           </button>
           <button
             onClick={handleExportPdf}
-            className="rounded-md border border-ink-300 px-3.5 py-1.5 text-sm font-medium text-ink-800 hover:bg-ink-100 transition-colors"
+            disabled={exporting}
+            className="rounded-md border border-ink-300 px-3.5 py-1.5 text-sm font-medium text-ink-800 hover:bg-ink-100 transition-colors disabled:opacity-50"
           >
-            📄 Export PDF
+            {exporting ? 'Export…' : '📄 Export PDF'}
           </button>
           <PrintButton onPrint={handlePrint} />
         </div>
