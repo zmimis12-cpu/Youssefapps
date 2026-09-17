@@ -19,6 +19,19 @@ export default function HistorySidebar({ history, ownAccounts, onExportPdf, onTo
   const [paidFilter, setPaidFilter] = useState<PaidFilter>('all');
   const [invoiceQuery, setInvoiceQuery] = useState('');
 
+  // Détection des doublons de N° de facture : sur tout l'historique (pas
+  // seulement la vue filtrée), pour repérer un doublon même s'il se trouve
+  // sur un autre compte ou masqué par le filtre en cours.
+  const duplicateInvoiceRefs = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const d of history) {
+      const ref = d.form.invoiceRef.trim();
+      if (!ref) continue;
+      counts.set(ref, (counts.get(ref) ?? 0) + 1);
+    }
+    return new Set([...counts.entries()].filter(([, n]) => n > 1).map(([ref]) => ref));
+  }, [history]);
+
   const filtered = useMemo(() => {
     const q = invoiceQuery.trim().toLowerCase();
     return history
@@ -110,8 +123,14 @@ export default function HistorySidebar({ history, ownAccounts, onExportPdf, onTo
                     const amount = f.amount ? formatAmountDigits(f.amount) : '';
                     const currencyLabel = f.currency ? writtenLabelFor(f.currency) : '';
                     const dt = new Date(doc.printedAt);
+                    const isDuplicateInvoice = f.invoiceRef.trim() !== '' && duplicateInvoiceRefs.has(f.invoiceRef.trim());
                     return (
-                      <li key={doc.id} className="rounded-md border border-ink-100 p-2.5">
+                      <li
+                        key={doc.id}
+                        className={`rounded-md border p-2.5 ${
+                          isDuplicateInvoice ? 'border-amber-400 bg-amber-50' : 'border-ink-100'
+                        }`}
+                      >
                         <p className="text-sm font-medium text-ink-900 truncate">
                           {f.beneficiaryName || 'Bénéficiaire non renseigné'}
                         </p>
@@ -131,6 +150,14 @@ export default function HistorySidebar({ history, ownAccounts, onExportPdf, onTo
                             </>
                           )}
                         </p>
+                        {isDuplicateInvoice && (
+                          <p
+                            className="mt-1 flex items-center gap-1 text-[11px] font-medium text-amber-700"
+                            title="Un autre document de l'historique utilise le même N° de facture"
+                          >
+                            ⚠️ N° de facture en double
+                          </p>
+                        )}
                         <div className="mt-1.5 flex items-center gap-1">
                           <button
                             onClick={() => onTogglePaid(doc.id)}
