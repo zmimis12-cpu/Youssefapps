@@ -33,44 +33,6 @@ import {
 import { demoSuppliers } from './data/suppliers';
 import { parseAmount } from './utils/formatAmount';
 
-// Génère le PDF A4 à partir d'un élément .a4-sheet déjà rendu dans le DOM.
-async function renderSheetToPdf(sheetEl: HTMLElement, formData: TransferForm) {
-  const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-    import('html2canvas-pro'),
-    import('jspdf'),
-  ]);
-  const canvas = await html2canvas(sheetEl, { scale: 3, backgroundColor: '#ffffff' });
-  const imgData = canvas.toDataURL('image/png');
-  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-  pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
-  const filename = `virement_${(formData.beneficiaryName || 'fournisseur').replace(/\s+/g, '_')}_${formData.date}.pdf`;
-  pdf.save(filename);
-}
-
-// Génère le PDF d'un document (ex. depuis l'historique) sans toucher au
-// formulaire actuellement affiché : le rend hors-écran, capture, puis nettoie.
-async function exportFormToPdf(formData: TransferForm) {
-  const ReactDOMClient = await import('react-dom/client');
-  const container = document.createElement('div');
-  container.style.position = 'fixed';
-  container.style.left = '-10000px';
-  container.style.top = '0';
-  document.body.appendChild(container);
-  const root = ReactDOMClient.createRoot(container);
-  try {
-    await new Promise<void>((resolve) => {
-      root.render(<A4Preview form={formData} />);
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-    });
-    const sheetEl = container.querySelector('.a4-sheet') as HTMLElement | null;
-    if (!sheetEl) throw new Error('Rendu du document introuvable');
-    await renderSheetToPdf(sheetEl, formData);
-  } finally {
-    root.unmount();
-    document.body.removeChild(container);
-  }
-}
-
 type RequiredKey =
   | 'beneficiaryAccountNumber'
   | 'beneficiaryName'
@@ -94,7 +56,6 @@ export default function App() {
   const [scale, setScale] = useState(1);
   const previewWrapRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
-  const [exporting, setExporting] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'unconfigured' | 'checking' | 'connected' | 'error'>(
     isSupabaseConfigured ? 'checking' : 'unconfigured'
   );
@@ -322,39 +283,38 @@ export default function App() {
     window.print();
   };
 
-  const handleExportPdf = async () => {
+  const handleExportPdf = () => {
     const missing = missingFieldsMessage();
     if (missing.length > 0) {
       setShowErrors(true);
       alert(`Merci de compléter les champs obligatoires avant d'exporter :\n\n• ${missing.join('\n• ')}`);
       return;
     }
-    if (!sheetRef.current) return;
-    setExporting(true);
-    try {
-      await renderSheetToPdf(sheetRef.current, form);
-      archiveCurrentDocument();
-    } catch (err) {
-      console.error('Export PDF a échoué :', err);
-      alert(
-        "L'export PDF a échoué. Réessaie, ou utilise \"Imprimer A4\" puis choisis " +
-          '"Enregistrer au format PDF" dans la fenêtre d\'impression du navigateur.'
-      );
-    } finally {
-      setExporting(false);
-    }
+    archiveCurrentDocument();
+    // Utilise le même moteur que "Imprimer A4" (rendu natif du navigateur) au
+    // lieu de reconstruire une image du document : c'est la seule méthode
+    // qui garantit un résultat identique à ce qui est affiché à l'écran,
+    // sur tous les navigateurs. Dans la fenêtre d'impression qui s'ouvre,
+    // choisir "Enregistrer au format PDF" comme destination.
+    window.print();
   };
 
-  // Réexport depuis l'historique : génère directement le PDF de ce document
-  // archivé, sans toucher au formulaire affiché et sans créer une nouvelle
-  // entrée d'historique (le document existe déjà).
-  const exportHistoryDocPdf = async (doc: ArchivedDocument) => {
-    try {
-      await exportFormToPdf(doc.form);
-    } catch (err) {
-      console.error('Export PDF (historique) a échoué :', err);
-      alert("L'export PDF a échoué. Réessaie dans quelques instants.");
-    }
+  // Réimpression depuis l'historique : bascule brièvement le formulaire
+  // affiché sur ce document archivé, ouvre la fenêtre d'impression native du
+  // navigateur (même moteur fiable que "Imprimer A4"), puis restaure le
+  // formulaire en cours une fois la fenêtre d'impression refermée. Ne crée
+  // pas de nouvelle entrée d'historique (le document existe déjà).
+  const exportHistoryDocPdf = (doc: ArchivedDocument) => {
+    const previousForm = form;
+    setForm(doc.form);
+    const restore = () => {
+      setForm(previousForm);
+      window.removeEventListener('afterprint', restore);
+    };
+    window.addEventListener('afterprint', restore);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => window.print());
+    });
   };
 
   const togglePaid = (id: string) => {
@@ -448,10 +408,9 @@ export default function App() {
           </button>
           <button
             onClick={handleExportPdf}
-            disabled={exporting}
-            className="rounded-md border border-ink-300 px-3.5 py-1.5 text-sm font-medium text-ink-800 hover:bg-ink-100 transition-colors disabled:opacity-50"
+            className="rounded-md border border-ink-300 px-3.5 py-1.5 text-sm font-medium text-ink-800 hover:bg-ink-100 transition-colors"
           >
-            {exporting ? 'Export…' : '📄 Export PDF'}
+            📄 Export PDF
           </button>
           <PrintButton onPrint={handlePrint} />
         </div>
