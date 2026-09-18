@@ -131,7 +131,10 @@ export default function HistorySidebar({ history, ownAccounts, onExportPdf, onTo
                           isDuplicateInvoice ? 'border-amber-400 bg-amber-50' : 'border-ink-100'
                         }`}
                       >
-                        <p className="text-sm font-medium text-ink-900 truncate">
+                        <p className="text-sm font-semibold text-ink-900 truncate">
+                          {f.invoiceRef || 'Sans N° de facture'}
+                        </p>
+                        <p className="mt-0.5 text-xs text-ink-700 truncate">
                           {f.beneficiaryName || 'Bénéficiaire non renseigné'}
                         </p>
                         <p className="mt-0.5 text-[11px] text-ink-500">
@@ -139,14 +142,8 @@ export default function HistorySidebar({ history, ownAccounts, onExportPdf, onTo
                           {dt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                           {amount && (
                             <>
-                              <br />
-                              {amount} {currencyLabel}
-                            </>
-                          )}
-                          {f.invoiceRef && (
-                            <>
-                              <br />
-                              Facture : {f.invoiceRef}
+                              {' '}
+                              · {amount} {currencyLabel}
                             </>
                           )}
                         </p>
