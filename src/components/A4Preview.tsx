@@ -95,11 +95,13 @@ function DataText({
   value,
   mono = true,
   bold = false,
+  uppercase = false,
 }: {
   field: keyof typeof fields;
   value: string;
   mono?: boolean;
   bold?: boolean;
+  uppercase?: boolean;
 }) {
   const pos = fields[field];
   if (!pos) return null;
@@ -117,6 +119,7 @@ function DataText({
         lineHeight: 1.25,
         fontFamily: mono ? FONT_MONO : FONT_SERIF,
         fontWeight: bold ? 600 : 400,
+        textTransform: uppercase ? 'uppercase' : undefined,
       }}
     >
       {value}
@@ -338,7 +341,7 @@ export default function A4Preview({ form }: Props) {
       {/* En règlement de */}
       <Bar top={142} label="En règlement de" />
       <FieldLine top={150} label="N° et date facture(s)" />
-      <DataText field="invoiceRef" value={form.invoiceRef} mono={false} />
+      <DataText field="invoiceRef" value={form.invoiceRef} mono={false} uppercase />
       <FieldLine top={156} width={128} label="Frais et commissions à la charge du bénéficiaire" />
       <Checkbox x={148} y={155.5} checked={form.feesOnBeneficiary === 'Oui'} />
       <Plain top={155.5} left={154}>Oui</Plain>
