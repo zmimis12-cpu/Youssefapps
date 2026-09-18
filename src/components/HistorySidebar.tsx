@@ -142,8 +142,10 @@ export default function HistorySidebar({ history, ownAccounts, onExportPdf, onTo
                           {dt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                           {amount && (
                             <>
-                              {' '}
-                              · {amount} {currencyLabel}
+                              {' · '}
+                              <span className="font-semibold text-ink-900">
+                                {amount} {currencyLabel}
+                              </span>
                             </>
                           )}
                         </p>
