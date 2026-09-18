@@ -82,35 +82,14 @@ async function renderSheetToPdf(sheetEl: HTMLElement, formData: TransferForm) {
   if (isCanvasBlank(canvas)) {
     canvas = await html2canvas(sheetEl, { ...baseOptions, foreignObjectRendering: false });
   }
-  const imgData = canvas.toDataURL('image/png');
+  // JPEG plutôt que PNG : un document quasi tout blanc avec du texte fin
+  // donne un PNG énorme (30-40 Mo à scale 3) alors que le JPEG, avec une
+  // qualité élevée, reste net pour du texte et pèse quelques centaines de Ko.
+  const imgData = canvas.toDataURL('image/jpeg', 0.92);
   const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-  pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+  pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
   const filename = `virement_${(formData.beneficiaryName || 'fournisseur').replace(/\s+/g, '_')}_${formData.date}.pdf`;
   pdf.save(filename);
-}
-
-// Génère le PDF d'un document (ex. depuis l'historique) sans toucher au
-// formulaire actuellement affiché : le rend hors-écran, capture, puis nettoie.
-async function exportFormToPdf(formData: TransferForm) {
-  const ReactDOMClient = await import('react-dom/client');
-  const container = document.createElement('div');
-  container.style.position = 'fixed';
-  container.style.left = '-10000px';
-  container.style.top = '0';
-  document.body.appendChild(container);
-  const root = ReactDOMClient.createRoot(container);
-  try {
-    await new Promise<void>((resolve) => {
-      root.render(<A4Preview form={formData} />);
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-    });
-    const sheetEl = container.querySelector('.a4-sheet') as HTMLElement | null;
-    if (!sheetEl) throw new Error('Rendu du document introuvable');
-    await renderSheetToPdf(sheetEl, formData);
-  } finally {
-    root.unmount();
-    document.body.removeChild(container);
-  }
 }
 
 type RequiredKey =
@@ -390,12 +369,26 @@ export default function App() {
   // Réexport depuis l'historique : génère directement le PDF de ce document
   // archivé, sans toucher au formulaire affiché et sans créer une nouvelle
   // entrée d'historique (le document existe déjà).
+  // Réimpression depuis l'historique : bascule brièvement le formulaire
+  // affiché sur ce document archivé (le rendu hors-écran précédent générait
+  // parfois un PDF vide — celui-ci réutilise le même élément visible et
+  // fiable que le bouton "Export PDF" principal), capture, puis restaure le
+  // formulaire en cours. Ne crée pas de nouvelle entrée d'historique (le
+  // document existe déjà).
   const exportHistoryDocPdf = async (doc: ArchivedDocument) => {
+    const previousForm = form;
+    setForm(doc.form);
+    await new Promise(requestAnimationFrame);
+    await new Promise(requestAnimationFrame);
     try {
-      await exportFormToPdf(doc.form);
+      if (sheetRef.current) {
+        await renderSheetToPdf(sheetRef.current, doc.form);
+      }
     } catch (err) {
       console.error('Export PDF (historique) a échoué :', err);
       alert("L'export PDF a échoué. Réessaie dans quelques instants.");
+    } finally {
+      setForm(previousForm);
     }
   };
 
