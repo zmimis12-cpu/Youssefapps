@@ -6,6 +6,7 @@ import { writtenLabelFor } from '../data/currencies';
 interface Props {
   history: ArchivedDocument[];
   ownAccounts: OwnAccount[];
+  onView: (doc: ArchivedDocument) => void;
   onExportPdf: (doc: ArchivedDocument) => void;
   onTogglePaid: (id: string) => void;
   onDelete: (id: string) => void;
@@ -14,7 +15,7 @@ interface Props {
 type PaidFilter = 'all' | 'paid' | 'unpaid';
 const NO_ACCOUNT = '__none__';
 
-export default function HistorySidebar({ history, ownAccounts, onExportPdf, onTogglePaid, onDelete }: Props) {
+export default function HistorySidebar({ history, ownAccounts, onView, onExportPdf, onTogglePaid, onDelete }: Props) {
   const [accountFilter, setAccountFilter] = useState<string>('all');
   const [paidFilter, setPaidFilter] = useState<PaidFilter>('all');
   const [invoiceQuery, setInvoiceQuery] = useState('');
@@ -167,6 +168,13 @@ export default function HistorySidebar({ history, ownAccounts, onExportPdf, onTo
                             }`}
                           >
                             {doc.paid ? '✓ Payé' : 'Non payé'}
+                          </button>
+                          <button
+                            title="Afficher / modifier"
+                            onClick={() => onView(doc)}
+                            className="rounded border border-ink-300 px-1.5 py-1 text-[11px] text-ink-700 hover:bg-ink-100"
+                          >
+                            👁
                           </button>
                           <button
                             title="Télécharger le PDF"

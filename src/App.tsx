@@ -6,6 +6,7 @@ import PrintButton from './components/PrintButton';
 import SupplierForm from './components/SupplierForm';
 import OwnAccountForm from './components/OwnAccountForm';
 import HistorySidebar from './components/HistorySidebar';
+import HistoryPreviewModal from './components/HistoryPreviewModal';
 import type { ArchivedDocument, OwnAccount, Supplier, TransferForm } from './types';
 import { emptyForm } from './types';
 import {
@@ -110,6 +111,7 @@ export default function App() {
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null | 'new'>(null);
   const [editingOwnAccount, setEditingOwnAccount] = useState<OwnAccount | null | 'new'>(null);
   const [leftPanel, setLeftPanel] = useState<'suppliers' | 'history'>('suppliers');
+  const [previewingDoc, setPreviewingDoc] = useState<ArchivedDocument | null>(null);
   const [showErrors, setShowErrors] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -402,6 +404,15 @@ export default function App() {
     });
   };
 
+  // Charge un document archivé dans le formulaire pour le corriger. La
+  // prochaine impression/export crée une nouvelle entrée d'historique — le
+  // document d'origine reste inchangé (trace de ce qui a été imprimé alors).
+  const loadDocForEditing = (doc: ArchivedDocument) => {
+    setForm({ ...doc.form, updatedAt: Date.now() });
+    setPreviewingDoc(null);
+    setShowErrors(false);
+  };
+
   const deleteFromHistory = (id: string) => {
     setHistory((prev) => {
       const next = prev.filter((d) => d.id !== id);
@@ -540,6 +551,7 @@ export default function App() {
               <HistorySidebar
                 history={history}
                 ownAccounts={ownAccounts}
+                onView={(doc) => setPreviewingDoc(doc)}
                 onExportPdf={exportHistoryDocPdf}
                 onTogglePaid={togglePaid}
                 onDelete={deleteFromHistory}
@@ -593,6 +605,15 @@ export default function App() {
           initial={editingOwnAccount === 'new' ? null : editingOwnAccount}
           onSave={saveOwnAccount}
           onCancel={() => setEditingOwnAccount(null)}
+        />
+      )}
+
+      {previewingDoc && (
+        <HistoryPreviewModal
+          doc={previewingDoc}
+          onClose={() => setPreviewingDoc(null)}
+          onEdit={loadDocForEditing}
+          onExportPdf={exportHistoryDocPdf}
         />
       )}
     </div>
