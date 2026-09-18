@@ -404,13 +404,20 @@ export default function App() {
     });
   };
 
-  // Charge un document archivé dans le formulaire pour le corriger. La
-  // prochaine impression/export crée une nouvelle entrée d'historique — le
-  // document d'origine reste inchangé (trace de ce qui a été imprimé alors).
-  const loadDocForEditing = (doc: ArchivedDocument) => {
-    setForm({ ...doc.form, updatedAt: Date.now() });
-    setPreviewingDoc(null);
-    setShowErrors(false);
+  // Enregistre les modifications faites directement dans la fenêtre
+  // d'aperçu de l'historique — met à jour ce document sur place, sans
+  // toucher au formulaire principal.
+  const saveHistoryDocEdit = (docId: string, updatedForm: TransferForm) => {
+    setHistory((prev) => {
+      const existing = prev.find((d) => d.id === docId);
+      if (!existing) return prev;
+      const updatedDoc: ArchivedDocument = { ...existing, form: updatedForm };
+      const next = prev.map((d) => (d.id === docId ? updatedDoc : d));
+      saveHistory(next);
+      upsertHistoryToSupabase(updatedDoc);
+      return next;
+    });
+    setPreviewingDoc((current) => (current && current.id === docId ? { ...current, form: updatedForm } : current));
   };
 
   const deleteFromHistory = (id: string) => {
@@ -611,8 +618,12 @@ export default function App() {
       {previewingDoc && (
         <HistoryPreviewModal
           doc={previewingDoc}
+          ownAccounts={ownAccounts}
           onClose={() => setPreviewingDoc(null)}
-          onEdit={loadDocForEditing}
+          onSave={(updatedForm) => saveHistoryDocEdit(previewingDoc.id, updatedForm)}
+          onAddOwnAccount={() => setEditingOwnAccount('new')}
+          onEditOwnAccount={(a) => setEditingOwnAccount(a)}
+          onDeleteOwnAccount={deleteOwnAccount}
           onExportPdf={exportHistoryDocPdf}
         />
       )}
