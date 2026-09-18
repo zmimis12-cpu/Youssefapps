@@ -60,6 +60,17 @@ function isCanvasBlank(canvas: HTMLCanvasElement): boolean {
 // document qui s'affichait en texte brut empilé. Les styles inline restent
 // toujours appliqués car ce sont des propriétés du DOM, jamais dépendantes
 // d'une feuille de style externe.
+// Nom de fichier partagé par Export PDF, Imprimer (suggestion "Enregistrer
+// en PDF") et le téléchargement depuis l'historique : N° de facture +
+// montant en chiffres en dollars US, plus lisible pour classer ses fichiers
+// que le nom du bénéficiaire répété à l'identique sur chaque document.
+function buildPdfFilename(formData: TransferForm): string {
+  const invoicePart = formData.invoiceRef.trim().replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, '_') || 'sans-facture';
+  const amountNum = parseAmount(formData.amount || '');
+  const amountPart = !Number.isNaN(amountNum) && formData.amount ? amountNum.toFixed(2) : '0';
+  return `${invoicePart}_${amountPart}_USD.pdf`;
+}
+
 async function renderSheetToPdf(sheetEl: HTMLElement, formData: TransferForm) {
   const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
     import('html2canvas-pro'),
@@ -89,8 +100,7 @@ async function renderSheetToPdf(sheetEl: HTMLElement, formData: TransferForm) {
   const imgData = canvas.toDataURL('image/jpeg', 0.92);
   const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
   pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
-  const filename = `virement_${(formData.beneficiaryName || 'fournisseur').replace(/\s+/g, '_')}_${formData.date}.pdf`;
-  pdf.save(filename);
+  pdf.save(buildPdfFilename(formData));
 }
 
 type RequiredKey =
@@ -342,6 +352,16 @@ export default function App() {
       return;
     }
     archiveCurrentDocument();
+    // Chrome/Edge utilisent le titre de la page comme nom suggéré quand on
+    // choisit "Enregistrer en PDF" dans la fenêtre d'impression — on
+    // l'aligne temporairement sur le même nom que les autres téléchargements.
+    const previousTitle = document.title;
+    document.title = buildPdfFilename(form).replace(/\.pdf$/, '');
+    const restoreTitle = () => {
+      document.title = previousTitle;
+      window.removeEventListener('afterprint', restoreTitle);
+    };
+    window.addEventListener('afterprint', restoreTitle);
     window.print();
   };
 
