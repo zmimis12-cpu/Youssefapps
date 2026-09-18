@@ -200,6 +200,11 @@ export default function A4Preview({ form }: Props) {
         color: '#111417',
         fontFamily: FONT_SERIF,
         boxSizing: 'border-box',
+        // Georgia (police du document) utilise par défaut des chiffres
+        // "à l'ancienne" (hauteurs inégales, ex. 3/5/7/9 qui descendent sous
+        // la ligne) — mauvais pour des numéros de compte/facture. Réglé ici
+        // une fois pour tout le document ; hérité par tous les éléments.
+        fontVariantNumeric: 'lining-nums',
       }}
     >
       {/* En-tête — logotype de banque modifiable/masquable depuis le formulaire
