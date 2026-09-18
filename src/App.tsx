@@ -68,7 +68,7 @@ function buildPdfFilename(formData: TransferForm): string {
   const invoicePart = formData.invoiceRef.trim().replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, '_') || 'sans-facture';
   const amountNum = parseAmount(formData.amount || '');
   const amountPart = !Number.isNaN(amountNum) && formData.amount ? amountNum.toFixed(2) : '0';
-  return `${invoicePart}_${amountPart}_USD.pdf`;
+  return `${invoicePart}_${amountPart}_DOLLAR_USA.pdf`;
 }
 
 async function renderSheetToPdf(sheetEl: HTMLElement, formData: TransferForm) {
